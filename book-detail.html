@@ -2,56 +2,109 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>북맵 — 도서 상세</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>도서 상세</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; background: #fafafa; }
-    h1 { text-align: center; margin-bottom: 20px; }
-    .card {
-      max-width: 600px; margin: 0 auto; background: white; border-radius: 10px;
-      padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    :root {
+      --gap: 16px;
+      --card-w: 400px;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #ffffff;
     }
-    img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 6px; background: #f0f0f0; }
-    .title { font-weight: bold; font-size: 20px; margin: 15px 0 10px; }
-    .meta { font-size: 14px; color: #666; margin-bottom: 12px; }
-    .desc { font-size: 15px; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; }
-    .nav { text-align: center; margin-top: 20px; }
-    .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      margin: 20px;
+      background: #fafafa;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 24px;
+    }
+    .card {
+      background: var(--bg);
+      max-width: var(--card-w);
+      margin: 0 auto;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 20px;
+      text-align: center;
+    }
+    .card img {
+      max-width: 220px;
+      height: auto;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 20px;
+      margin: 0 0 8px;
+    }
+    .card p {
+      margin: 4px 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .desc {
+      margin-top: 16px;
+      text-align: left;
+      color: var(--text);
+    }
+    .toolbar {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .toolbar a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #1a73e8;
+    }
   </style>
 </head>
 <body>
-  <h1>📖 도서 상세</h1>
-  <div id="bookDetail" class="card"></div>
-  <div class="nav">
-    <a href="index.html">🏠 홈</a>
-    <a href="book.html">📚 도서 목록</a>
-  </div>
+  <main>
+    <h1>📖 도서 상세</h1>
+    <div id="book-detail" class="card"></div>
+    <div class="toolbar">
+      <a href="index.html">🏠 홈</a>
+      <a href="book.html">📚 도서 목록</a>
+    </div>
+  </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const params = new URLSearchParams(window.location.search);
-    const title = params.get("title");
+    const API_URL = "YOUR_SCRIPT_URL"; // ← 여기 Apps Script URL 넣으세요
 
-    async function fetchBook() {
-      const res = await fetch(API_URL);
-      const books = await res.json();
-      const book = books.find(b => b.title === title);
+    async function loadBookDetail() {
+      const params = new URLSearchParams(window.location.search);
+      const title = params.get("title");
 
-      if (!book) {
-        document.getElementById("bookDetail").innerHTML = "<p>❌ 도서를 찾을 수 없습니다.</p>";
-        return;
+      try {
+        const res = await fetch(API_URL + "?action=list");
+        const books = await res.json();
+        const book = books.find(b => b.제목 === title);
+
+        if (!book) {
+          document.getElementById("book-detail").innerHTML = "<p>책을 찾을 수 없습니다.</p>";
+          return;
+        }
+
+        document.getElementById("book-detail").innerHTML = `
+          <img src="${book.이미지 || "https://via.placeholder.com/200x300?text=No+Image"}" alt="${book.제목}">
+          <h2>${book.제목}</h2>
+          <p>${book.저자} | ${book.출판사}</p>
+          <div class="desc">${book.설명 || "설명 없음"}</div>
+        `;
+      } catch (err) {
+        document.getElementById("book-detail").innerHTML = "<p>데이터 불러오기 실패</p>";
+        console.error(err);
       }
-
-      document.getElementById("bookDetail").innerHTML = `
-        <img src="${book.cover || 'https://via.placeholder.com/200x300?text=No+Cover'}" alt="${book.title}">
-        <div class="title">${book.title}</div>
-        <div class="meta">${book.author || ''} | ${book.publisher || ''}</div>
-        <div class="desc">${book.description || ''}</div>
-        ${book.buy ? `<a href="${book.buy}" target="_blank">🛒 구매하기</a>` : ""}
-      `;
     }
 
-    fetchBook();
+    loadBookDetail();
   </script>
 </body>
 </html>
