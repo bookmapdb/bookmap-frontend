@@ -2,73 +2,111 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>도서 상세보기 - BookMap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>도서 상세 - BookMap</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 20px;
+      background: #fafafa;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 720px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    h1 { margin-top: 0; }
+    img {
+      width: 220px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin-bottom: 20px;
+    }
+    .muted { color: #6b7280; }
+
+    /* 로딩 */
+    .loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(255,255,255,0.8);
+      z-index: 9999;
+    }
+    .hidden { display: none; }
+    .spinner {
+      border: 4px solid #eee;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <div class="max-w-3xl mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">📚 도서 상세보기</h1>
+<body>
+  <div class="container" id="book-detail">
+    <p>상세 정보를 불러오는 중...</p>
+  </div>
 
-    <div id="bookDetail" class="bg-white shadow rounded-lg p-6"></div>
-
-    <!-- 하단 버튼 -->
-    <div class="mt-8 flex justify-between">
-      <a href="book.html" class="text-blue-600 hover:underline">⬅️ 도서 리스트</a>
-      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
-    </div>
+  <!-- 로딩 -->
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p>로딩 중입니다...</p>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const bookDetail = document.getElementById("bookDetail");
 
-    // URL에서 title 파라미터 추출
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookTitle = urlParams.get("title");
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+    }
+    function hideLoading() {
+      document.getElementById('loading').classList.add('hidden');
+    }
 
-    async function fetchBookDetail() {
+    async function loadBookDetail() {
+      showLoading();
+      const params = new URLSearchParams(window.location.search);
+      const title = params.get("title");
+
       try {
-        const res = await fetch(API_URL);
-        const books = await res.json();
+        const res = await fetch(API_URL + "?action=getBooks");
+        const data = await res.json();
+        const book = data.find(b => b.title === title);
 
-        // 해당 도서 찾기
-        const book = books.find(b => b.title === bookTitle);
-
-        if (!book) {
-          bookDetail.innerHTML = `<p class="text-red-600">❌ 해당 도서를 찾을 수 없습니다.</p>`;
-          return;
+        const container = document.getElementById("book-detail");
+        if (book) {
+          container.innerHTML = `
+            <h1>${book.title}</h1>
+            <img src="${book.image || ''}" alt="${book.title}">
+            <p class="muted">저자: ${book.author || '정보 없음'}</p>
+            <p>출판사: ${book.publisher || '정보 없음'}</p>
+            <p>카테고리: ${book.category || ''}</p>
+            <p>레벨: ${book.level || ''}</p>
+            <p>${book.description || ''}</p>
+            <p><a href="${book.aladin || '#'}" target="_blank">알라딘 링크</a></p>
+            <p><a href="${book.yes24 || '#'}" target="_blank">YES24 링크</a></p>
+          `;
+        } else {
+          container.innerHTML = `<p>해당 도서를 찾을 수 없습니다.</p>`;
         }
-
-        bookDetail.innerHTML = `
-          <div class="flex flex-col md:flex-row gap-6">
-            <img src="${book.cover || "https://via.placeholder.com/200x280?text=No+Cover"}" 
-                 alt="${book.title}" class="w-48 h-64 object-cover rounded shadow">
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold">${book.title}</h2>
-              <p class="text-gray-700 mt-2"><strong>저자:</strong> ${book.author || "-"}</p>
-              <p class="text-gray-700"><strong>번역자:</strong> ${book.translator || "-"}</p>
-              <p class="text-gray-700"><strong>출판사:</strong> ${book.publisher || "-"}</p>
-              <p class="text-gray-700"><strong>레벨:</strong> ${book.level || "-"}</p>
-              <p class="text-gray-700"><strong>카테고리:</strong> ${(book.category && book.category.join(", ")) || "-"}</p>
-              <p class="text-gray-700 mt-2"><strong>추천 이유:</strong><br>${book.reason || "-"}</p>
-              <p class="text-gray-500 mt-2 text-sm">등록자: ${book.submitter || "-"} (${book.email || "-"})</p>
-              <p class="text-gray-400 text-xs mt-1">상태: ${book.status || "대기"}</p>
-
-              <div class="mt-4 space-x-2">
-                ${book.link?.aladin ? `<a href="${book.link.aladin}" target="_blank" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">알라딘</a>` : ""}
-                ${book.link?.kyobo ? `<a href="${book.link.kyobo}" target="_blank" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">교보문고</a>` : ""}
-                ${book.link?.yes24 ? `<a href="${book.link.yes24}" target="_blank" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">YES24</a>` : ""}
-              </div>
-            </div>
-          </div>
-        `;
-      } catch (err) {
-        bookDetail.innerHTML = `<p class="text-red-600">❌ 데이터를 불러오는데 실패했습니다.</p>`;
+      } catch(e) {
+        alert("도서 정보를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        hideLoading();
       }
     }
 
-    fetchBookDetail();
+    loadBookDetail();
   </script>
 </body>
 </html>
