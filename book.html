@@ -2,70 +2,139 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>도서 리스트 - BookMap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --gap: 16px;
+      --card-w: 260px; /* 기존 360px → 축소 */
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --link: #1a73e8;
+      --bg: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      margin: 20px;
+      background: #fafafa;
+    }
+    h1 { margin: 0 0 14px; font-size: 22px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+      gap: var(--gap);
+    }
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: contain; /* 전체 축소 이미지 */
+      background: #f9f9f9;
+    }
+    .card-body {
+      padding: 12px 14px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 6px;
+    }
+    .card-author {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .card a {
+      text-decoration: none;
+      color: var(--link);
+      font-size: 14px;
+    }
+
+    /* 로딩 */
+    .loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(255,255,255,0.8);
+      z-index: 9999;
+    }
+    .hidden { display: none; }
+    .spinner {
+      border: 4px solid #eee;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <div class="max-w-6xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">📖 도서 리스트</h1>
+<body>
+  <h1>도서 리스트</h1>
+  <div class="grid" id="book-list"></div>
 
-    <!-- 리스트 컨테이너 -->
-    <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
-
-    <!-- 하단 버튼 -->
-    <div class="mt-8 flex justify-between">
-      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
-      <a href="form.html" class="text-blue-600 hover:underline">➕ 도서 등록</a>
-    </div>
+  <!-- 로딩 -->
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p>로딩 중입니다...</p>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const bookList = document.getElementById("bookList");
 
-    // 도서 리스트 불러오기
-    async function fetchBooks() {
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+    }
+    function hideLoading() {
+      document.getElementById('loading').classList.add('hidden');
+    }
+
+    async function loadBooks() {
+      showLoading();
       try {
-        const res = await fetch(API_URL);
-        const books = await res.json();
+        const res = await fetch(API_URL + "?action=getBooks");
+        const data = await res.json();
 
-        bookList.innerHTML = "";
+        const list = document.getElementById('book-list');
+        list.innerHTML = "";
 
-        if (!books.length) {
-          bookList.innerHTML = `<p class="text-gray-600">등록된 도서가 없습니다.</p>`;
-          return;
-        }
-
-        books.forEach(book => {
-          const card = document.createElement("div");
-          card.className = "bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer";
-
-          card.innerHTML = `
-            <img src="${book.cover || "https://via.placeholder.com/150x200?text=No+Cover"}" 
-                 alt="${book.title}" class="w-full h-56 object-cover">
-            <div class="p-4">
-              <h2 class="text-lg font-semibold truncate">${book.title}</h2>
-              <p class="text-sm text-gray-600">${book.author || ""} ${book.translator ? "/ " + book.translator : ""}</p>
-              <p class="text-sm text-gray-500">${book.publisher || ""}</p>
-              <p class="text-xs text-gray-400 mt-1">레벨: ${book.level || "-"}</p>
-              <p class="text-xs mt-1 px-2 py-1 rounded bg-gray-100 inline-block">${book.status || "대기"}</p>
+        data.forEach(book => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <img src="${book.image || ''}" alt="${book.title}">
+            <div class="card-body">
+              <div class="card-title">${book.title}</div>
+              <div class="card-author">${book.author || ''}</div>
+              <a href="book-detail.html?title=${encodeURIComponent(book.title)}">상세보기</a>
             </div>
           `;
-
-          // 상세 페이지로 이동
-          card.addEventListener("click", () => {
-            window.location.href = `book-detail.html?title=${encodeURIComponent(book.title)}`;
-          });
-
-          bookList.appendChild(card);
+          list.appendChild(div);
         });
-      } catch (err) {
-        bookList.innerHTML = `<p class="text-red-600">❌ 데이터를 불러오는데 실패했습니다.</p>`;
+      } catch(e) {
+        alert("도서 목록을 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        hideLoading();
       }
     }
 
-    fetchBooks();
+    loadBooks();
   </script>
 </body>
 </html>
