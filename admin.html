@@ -6,106 +6,101 @@
   <title>관리자 페이지 - BookMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100 text-gray-800">
   <div class="max-w-6xl mx-auto p-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">🔑 관리자 페이지</h1>
+    <h1 class="text-3xl font-bold mb-6">🔑 관리자 페이지</h1>
+
+    <!-- 안내 -->
+    <p class="mb-4 text-gray-600">여기서는 관리자가 도서를 <strong>승인 / 보류 / 편집</strong>할 수 있습니다.</p>
+
+    <!-- 리스트 -->
+    <div id="adminList" class="space-y-4"></div>
+
+    <!-- 하단 버튼 -->
+    <div class="mt-8 flex justify-between">
       <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
-    </div>
-
-    <!-- 로그인 -->
-    <div id="loginSection" class="bg-white shadow rounded-xl p-6 mb-6">
-      <p class="mb-3">관리자 비밀번호를 입력하세요.</p>
-      <input type="password" id="adminPassword" class="border p-2 rounded w-64" placeholder="비밀번호 입력" />
-      <button onclick="checkLogin()" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">로그인</button>
-    </div>
-
-    <!-- 도서 관리 섹션 -->
-    <div id="adminSection" class="hidden">
-      <table class="w-full border-collapse border">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="border px-3 py-2">도서명</th>
-            <th class="border px-3 py-2">저자</th>
-            <th class="border px-3 py-2">상태</th>
-            <th class="border px-3 py-2">작업</th>
-          </tr>
-        </thead>
-        <tbody id="adminTable"></tbody>
-      </table>
+      <a href="book.html" class="text-blue-600 hover:underline">📚 도서 리스트</a>
     </div>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEMJ9D1bXqKdplunU81Xc0XGnDMW-7d1isBZG5lGvg7xOiV5WDWV3Nr6pEXHs3Uyw48Q/exec";
-    const PASSWORD = "bookmap2025"; // ✅ 여기에 관리자 비밀번호 설정
-    const loginSection = document.getElementById("loginSection");
-    const adminSection = document.getElementById("adminSection");
-    const adminTable = document.getElementById("adminTable");
+    const adminList = document.getElementById("adminList");
 
-    function checkLogin() {
-      const input = document.getElementById("adminPassword").value;
-      if (input === PASSWORD) {
-        loginSection.classList.add("hidden");
-        adminSection.classList.remove("hidden");
-        loadBooks();
-      } else {
-        alert("비밀번호가 틀렸습니다.");
-      }
-    }
-
-    async function loadBooks() {
+    // 도서 불러오기
+    async function fetchBooks() {
       try {
         const res = await fetch(API_URL);
-        const data = await res.json();
+        const books = await res.json();
 
-        adminTable.innerHTML = data.map(book => `
-          <tr>
-            <td class="border px-3 py-2">${book.title}</td>
-            <td class="border px-3 py-2">${book.author}</td>
-            <td class="border px-3 py-2">${book.status || "대기"}</td>
-            <td class="border px-3 py-2 space-x-2">
-              <button onclick="updateStatus('${book.title}','승인')" class="px-2 py-1 bg-green-500 text-white rounded">승인</button>
-              <button onclick="updateStatus('${book.title}','보류')" class="px-2 py-1 bg-yellow-500 text-white rounded">보류</button>
-              <button onclick="editBook('${book.title}')" class="px-2 py-1 bg-blue-500 text-white rounded">편집</button>
-            </td>
-          </tr>
-        `).join("");
-      } catch (err) {
-        adminTable.innerHTML = `<tr><td colspan="4" class="text-center text-red-500">⚠️ 데이터를 불러올 수 없습니다.</td></tr>`;
-      }
-    }
+        adminList.innerHTML = "";
 
-    // 상태 업데이트
-    async function updateStatus(title, status) {
-      try {
-        await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "updateStatus", title, status })
+        if (!books.length) {
+          adminList.innerHTML = `<p class="text-gray-600">등록된 도서가 없습니다.</p>`;
+          return;
+        }
+
+        books.forEach(book => {
+          const card = document.createElement("div");
+          card.className = "bg-white shadow rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center";
+
+          card.innerHTML = `
+            <div>
+              <h2 class="text-lg font-semibold">${book.title}</h2>
+              <p class="text-sm text-gray-600">${book.author || ""} ${book.translator ? "/ " + book.translator : ""}</p>
+              <p class="text-xs text-gray-500">${book.publisher || ""}</p>
+              <p class="text-xs text-gray-400 mt-1">상태: <span class="font-semibold">${book.status || "대기"}</span></p>
+            </div>
+            <div class="mt-3 md:mt-0 flex gap-2">
+              <button onclick="updateStatus('${book.title}','승인')" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">승인</button>
+              <button onclick="updateStatus('${book.title}','보류')" class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">보류</button>
+              <button onclick="editBook('${book.title}')" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">편집</button>
+            </div>
+          `;
+
+          adminList.appendChild(card);
         });
-        alert(`${title} → ${status} 처리되었습니다.`);
-        loadBooks();
       } catch (err) {
-        alert("⚠️ 상태 변경 실패");
+        adminList.innerHTML = `<p class="text-red-600">❌ 데이터를 불러오는데 실패했습니다.</p>`;
       }
     }
 
-    // 편집 (간단 구현: 제목만 예시)
-    function editBook(title) {
-      const newTitle = prompt("새로운 도서명을 입력하세요:", title);
-      if (!newTitle) return;
-
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "editBook", oldTitle: title, newTitle })
-      })
-        .then(() => {
-          alert("도서 정보가 수정되었습니다.");
-          loadBooks();
-        })
-        .catch(() => alert("⚠️ 편집 실패"));
+    // 상태 변경
+    async function updateStatus(title, newStatus) {
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "updateStatus", title, status: newStatus })
+        });
+        const result = await res.json();
+        alert(result.message || "처리되었습니다.");
+        fetchBooks(); // 새로고침
+      } catch (err) {
+        alert("❌ 상태 변경 실패");
+      }
     }
+
+    // 편집 (간단 예시: 제목 기반으로 찾고 reason 수정)
+    async function editBook(title) {
+      const newReason = prompt("새로운 추천 이유를 입력하세요:");
+      if (!newReason) return;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "editBook", title, reason: newReason })
+        });
+        const result = await res.json();
+        alert(result.message || "편집되었습니다.");
+        fetchBooks();
+      } catch (err) {
+        alert("❌ 편집 실패");
+      }
+    }
+
+    fetchBooks();
   </script>
 </body>
 </html>
