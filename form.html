@@ -2,105 +2,70 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>📚 도서 등록</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f9fafb;
-      margin: 20px;
-      color: #1f2937;
-    }
-    h1 {
-      text-align: center;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    form {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      background: #2563eb;
-      color: #fff;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    nav {
-      text-align: center;
-      margin-top: 20px;
-    }
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      font-size: 14px;
-    }
+    body { font-family: sans-serif; background: #f0f4f8; color: #1f2937; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05); }
+    h1 { text-align: center; font-size: 28px; color: #1a73e8; margin-bottom: 30px; }
+    label { display: block; margin-top: 18px; font-weight: 600; font-size: 15px; color: #4b5563; }
+    input, textarea, select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+    input:focus, textarea:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26,115,232,0.2); }
+    textarea { resize: vertical; min-height: 100px; }
+    .btn-submit { margin-top: 30px; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; background: #1a73e8; color: #fff; transition: background 0.3s ease; }
+    .btn-submit:hover { background: #1562c2; }
+    .nav { text-align: center; margin-top: 25px; }
+    .nav a { margin: 0 12px; text-decoration: none; font-size: 15px; color: #1a73e8; font-weight: 500; }
   </style>
 </head>
 <body>
-  <h1>📚 도서 등록</h1>
-  <form id="bookForm">
-    <label>제목</label>
-    <input type="text" name="제목" required>
+  <div class="container">
+    <h1>📚 도서 등록</h1>
+    <form id="bookForm">
+      <label>제목</label>
+      <input type="text" name="title" required>
 
-    <label>저자</label>
-    <input type="text" name="저자" required>
+      <label>저자</label>
+      <input type="text" name="author" required>
 
-    <label>출판사</label>
-    <input type="text" name="출판사" required>
+      <label>출판사</label>
+      <input type="text" name="publisher" required>
 
-    <label>이미지 URL</label>
-    <input type="url" name="이미지" placeholder="https://example.com/book.jpg">
+      <label>카테고리 (쉼표로 구분)</label>
+      <input type="text" name="category" placeholder="예: 소설, 문학, 고전">
 
-    <label>설명</label>
-    <textarea name="설명" placeholder="책 소개를 입력하세요"></textarea>
+      <label>난이도</label>
+      <select name="level">
+        <option value="입문">입문</option>
+        <option value="초급">초급</option>
+        <option value="중급">중급</option>
+        <option value="고급">고급</option>
+        <option value="전문">전문</option>
+      </select>
 
-    <label>알라딘 링크</label>
-    <input type="url" name="알라딘" placeholder="https://www.aladin.co.kr/...">
+      <label>이미지 URL</label>
+      <input type="url" name="cover" placeholder="https://example.com/book.jpg">
 
-    <label>교보 링크</label>
-    <input type="url" name="교보" placeholder="https://www.kyobobook.co.kr/...">
+      <label>설명</label>
+      <textarea name="description" placeholder="책 소개를 입력하세요"></textarea>
 
-    <label>예스24 링크</label>
-    <input type="url" name="YES24" placeholder="https://www.yes24.com/...">
+      <label>알라딘 링크</label>
+      <input type="url" name="aladin" placeholder="https://www.aladin.co.kr/...">
 
-    <button type="submit">등록하기</button>
-  </form>
+      <label>교보 링크</label>
+      <input type="url" name="kyobo" placeholder="https://www.kyobobook.co.kr/...">
 
-  <nav>
+      <label>예스24 링크</label>
+      <input type="url" name="yes24" placeholder="https://www.yes24.com/...">
+
+      <button type="submit" class="btn-submit">등록하기</button>
+    </form>
+  </div>
+  
+  <div class="nav">
     <a href="index.html">🏠 홈</a>
     <a href="book.html">📚 도서 목록</a>
-  </nav>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
@@ -111,17 +76,27 @@
       const data = {};
       formData.forEach((value, key) => data[key] = value);
 
+      // Add a single "buy" property that combines all store links
+      data.buy = JSON.stringify({
+        aladin: data.aladin || "",
+        kyobo: data.kyobo || "",
+        yes24: data.yes24 || ""
+      });
+      delete data.aladin;
+      delete data.kyobo;
+      delete data.yes24;
+
       fetch(API_URL, {
         method: "POST",
         body: JSON.stringify(data)
       })
       .then(res => res.json())
       .then(result => {
-        alert("도서가 등록되었습니다!");
+        alert("도서가 성공적으로 등록되었습니다!");
         window.location.href = "book.html";
       })
       .catch(err => {
-        console.error(err);
+        console.error("Error:", err);
         alert("등록 실패. 다시 시도해주세요.");
       });
     });
