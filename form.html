@@ -1,150 +1,120 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>도서 등록 - BookMap</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>도서 등록</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      margin: 20px;
-      background: #fafafa;
-      color: #1f2937;
-    }
-    form {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    label { display: block; margin: 10px 0 6px; }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 14px;
-    }
-    button {
-      background: #1a73e8;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover { background: #1669c1; }
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; color: #333; }
+    h1 { text-align: center; }
 
-    /* 로딩 */
-    .loading {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(255,255,255,0.8);
-      z-index: 9999;
+    form {
+      max-width: 600px; margin: 0 auto;
+      background: white; padding: 20px; border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .hidden { display: none; }
-    .spinner {
-      border: 4px solid #eee;
-      border-top: 4px solid #1a73e8;
-      border-radius: 50%;
-      width: 36px; height: 36px;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, textarea {
+      width: 100%; padding: 10px; margin-top: 6px;
+      border: 1px solid #ccc; border-radius: 6px;
+      font-size: 14px;
     }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    textarea { resize: vertical; }
+
+    .btn {
+      margin-top: 20px; padding: 12px; border: none;
+      border-radius: 8px; background: #1a73e8; color: white;
+      cursor: pointer; font-size: 15px; width: 100%;
+    }
+    .btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    .nav { margin-top: 20px; text-align: center; }
+    .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
+
+    .loading { text-align: center; margin: 20px 0; display: none; color: #555; }
   </style>
 </head>
 <body>
-  <h1>도서 등록</h1>
-  <form id="book-form">
-    <label>제목</label>
-    <input type="text" name="title" required />
+  <h1>✍️ 도서 등록</h1>
+
+  <form id="bookForm">
+    <label>도서명</label>
+    <input type="text" name="title" required>
 
     <label>저자</label>
-    <input type="text" name="author" />
+    <input type="text" name="author">
+
+    <label>번역자</label>
+    <input type="text" name="translator">
 
     <label>출판사</label>
-    <input type="text" name="publisher" />
+    <input type="text" name="publisher">
 
-    <label>카테고리 (심표 구분)</label>
-    <input type="text" name="category" />
+    <label>카테고리</label>
+    <input type="text" name="category" placeholder="예: 소설, 자기계발">
 
     <label>레벨</label>
-    <select name="level">
-      <option>입문</option>
-      <option>중급</option>
-      <option>고급</option>
-    </select>
+    <input type="text" name="level" placeholder="입문, 초급, 중급, 고급, 전문 중 택1">
 
-    <label>설명</label>
-    <textarea name="description"></textarea>
+    <label>추천 이유</label>
+    <textarea name="reason" rows="3"></textarea>
 
     <label>알라딘 링크</label>
-    <input type="url" name="aladin" />
+    <input type="url" name="link.aladin">
+
+    <label>교보문고 링크</label>
+    <input type="url" name="link.kyobo">
 
     <label>YES24 링크</label>
-    <input type="url" name="yes24" />
+    <input type="url" name="link.yes24">
 
-    <label>이미지 URL</label>
-    <input type="url" name="image" />
+    <label>표지 이미지 URL</label>
+    <input type="url" name="cover">
 
-    <label>추천자 이름</label>
-    <input type="text" name="recommender" />
+    <label>등록자 이름</label>
+    <input type="text" name="submitter">
 
     <label>이메일</label>
-    <input type="email" name="email" />
+    <input type="email" name="email">
 
-    <button type="submit">등록하기</button>
+    <button type="submit" id="submitBtn" class="btn">등록하기</button>
   </form>
 
-  <!-- 로딩 -->
-  <div id="loading" class="loading hidden">
-    <div class="spinner"></div>
-    <p>등록 중입니다...</p>
+  <div id="loading" class="loading">📡 등록 중입니다...</div>
+
+  <div class="nav">
+    <a href="index.html">🏠 홈</a>
+    <a href="book.html">📚 도서 리스트</a>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
 
-    function showLoading() {
-      document.getElementById('loading').classList.remove('hidden');
-    }
-    function hideLoading() {
-      document.getElementById('loading').classList.add('hidden');
-    }
-
-    document.getElementById("book-form").addEventListener("submit", async function(e) {
+    document.getElementById("bookForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      showLoading();
+      const btn = document.getElementById("submitBtn");
+      const loading = document.getElementById("loading");
 
-      const formData = new FormData(this);
-      const payload = {};
-      formData.forEach((value, key) => { payload[key] = value; });
+      btn.disabled = true;
+      loading.style.display = "block";
+
+      const formData = new FormData(e.target);
+      const data = {};
+      formData.forEach((value, key) => data[key] = value);
 
       try {
-        const res = await fetch(API_URL, {
+        await fetch(API_URL, {
           method: "POST",
-          body: JSON.stringify({ action: "addBook", ...payload }),
-          headers: { "Content-Type": "application/json" }
+          body: JSON.stringify(data),
         });
 
-        const result = await res.json();
-        if (result.status === "success") {
-          alert("도서가 등록되었습니다!");
-          this.reset();
-        } else {
-          alert("등록 실패: " + result.message);
-        }
+        alert("도서가 등록 요청되었습니다! (관리자 승인 후 반영됩니다)");
+        window.location.href = "book.html";
       } catch (err) {
-        alert("네트워크 오류: " + err.message);
+        alert("❌ 오류가 발생했습니다. 다시 시도해주세요.");
       } finally {
-        hideLoading();
+        btn.disabled = false;
+        loading.style.display = "none";
       }
     });
   </script>
