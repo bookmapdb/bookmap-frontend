@@ -3,78 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>BookMap — 도서 등록</title>
+  <title>북맵 — 도서 등록</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; background: #fafafa; }
-    h1 { font-size: 22px; margin-bottom: 20px; }
-    form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    label { display: block; margin-top: 12px; font-weight: bold; }
-    input, select { width: 100%; padding: 8px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; }
-    button { margin-top: 20px; padding: 10px; width: 100%; border: none; border-radius: 6px; background: #1a73e8; color: white; font-size: 16px; cursor: pointer; }
-    button:hover { background: #155ab6; }
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; }
+    h1 { text-align: center; margin-bottom: 20px; }
+    form { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
+    input, textarea, select {
+      width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+    }
+    button {
+      margin-top: 20px; padding: 12px; width: 100%; border: none;
+      background: #1a73e8; color: white; font-size: 15px; border-radius: 8px; cursor: pointer;
+    }
+    .loading { text-align: center; margin-top: 10px; display: none; color: #444; }
+    .nav { text-align: center; margin-top: 20px; }
+    .nav a { margin: 0 10px; color: #1a73e8; text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>📖 도서 등록</h1>
+  <h1>✍️ 도서 등록</h1>
   <form id="bookForm">
-    <label>제목<input type="text" name="title" required></label>
-    <label>저자<input type="text" name="author" required></label>
-    <label>출판사<input type="text" name="publisher"></label>
-    <label>표지 이미지(URL)<input type="url" name="cover"></label>
-
-    <!-- ✅ 카테고리 선택 -->
-    <label>카테고리
-      <select name="category" required>
-        <option value="">-- 선택 --</option>
-        <option value="기독교">기독교</option>
-        <option value="개신교">개신교</option>
-        <option value="신학">신학</option>
-        <option value="철학">철학</option>
-        <option value="역사">역사</option>
-        <option value="문학">문학</option>
-        <option value="사회과학">사회과학</option>
-        <option value="자연과학">자연과학</option>
+    <label>도서명 <input type="text" name="title" required></label>
+    <label>저자 <input type="text" name="author"></label>
+    <label>출판사 <input type="text" name="publisher"></label>
+    <label>카테고리 <input type="text" name="category" placeholder="예: 기독교, 신학"></label>
+    <label>난이도
+      <select name="level">
+        <option value="">선택</option>
+        <option>입문</option>
+        <option>초급</option>
+        <option>중급</option>
+        <option>고급</option>
+        <option>전문</option>
       </select>
     </label>
-
-    <!-- ✅ 난이도 선택 -->
-    <label>레벨
-      <select name="level" required>
-        <option value="">-- 선택 --</option>
-        <option value="입문">입문</option>
-        <option value="초급">초급</option>
-        <option value="중급">중급</option>
-        <option value="고급">고급</option>
-        <option value="전문">전문</option>
-      </select>
-    </label>
-
-    <button type="submit">등록하기</button>
+    <label>표지 이미지 URL <input type="url" name="cover"></label>
+    <label>구매 링크 <input type="url" name="buy"></label>
+    <label>설명 <textarea name="description"></textarea></label>
+    <button type="submit" id="submitBtn">등록하기</button>
+    <div class="loading" id="loading">⏳ 등록중...</div>
   </form>
+  <div class="nav">
+    <a href="index.html">🏠 홈</a>
+    <a href="book.html">📖 도서 리스트</a>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
+    const form = document.getElementById("bookForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const loading = document.getElementById("loading");
 
-    document.getElementById("bookForm").addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData.entries());
+      submitBtn.disabled = true;
+      loading.style.display = "block";
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v, k) => data[k] = v);
 
       try {
-        const res = await fetch(API_URL, {
+        await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify(data),
           headers: { "Content-Type": "application/json" }
         });
-        const result = await res.json();
-        if (result.success) {
-          alert("✅ 도서가 등록되었습니다!");
-          e.target.reset();
-        } else {
-          alert("❌ 등록 실패: " + (result.error || "알 수 없는 오류"));
-        }
+        alert("✅ 도서가 등록되었습니다!");
+        form.reset();
       } catch (err) {
-        alert("⚠️ 서버 오류: " + err.message);
+        alert("❌ 등록 실패");
+      } finally {
+        submitBtn.disabled = false;
+        loading.style.display = "none";
       }
     });
   </script>
