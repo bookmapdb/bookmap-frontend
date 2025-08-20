@@ -61,7 +61,7 @@
     async function fetchBooks() {
       loading.style.display = "block";
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL + "?action=list");
         books = await res.json();
         renderFilters();
         renderBooks();
