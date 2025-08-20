@@ -7,86 +7,102 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
-  <div class="max-w-2xl mx-auto p-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">📚 도서 등록</h1>
-      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
-    </div>
+  <div class="max-w-2xl mx-auto p-6 bg-white shadow rounded-xl mt-6">
+    <h1 class="text-2xl font-bold mb-4">📚 도서 등록</h1>
 
-    <!-- Form -->
-    <form id="bookForm" class="space-y-4 bg-white shadow p-6 rounded-xl">
-      <div>
-        <label class="block font-medium mb-1">도서명</label>
-        <input type="text" name="title" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">저자</label>
-        <input type="text" name="author" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">출판사</label>
-        <input type="text" name="publisher" class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">출판년도</label>
-        <input type="number" name="year" class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">표지 이미지 URL</label>
-        <input type="url" name="cover" placeholder="http://..." class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">구매 링크</label>
-        <input type="url" name="link" placeholder="http://..." class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
-      </div>
+    <form id="bookForm" class="space-y-4">
+      <input type="text" name="title" placeholder="도서명" class="w-full border p-2 rounded" required />
+      <input type="text" name="author" placeholder="저자" class="w-full border p-2 rounded" />
+      <input type="text" name="translator" placeholder="번역자/옮긴이" class="w-full border p-2 rounded" />
+      <input type="text" name="publisher" placeholder="출판사" class="w-full border p-2 rounded" />
 
-      <!-- Buttons -->
-      <div class="flex justify-between items-center mt-6">
-        <a href="index.html" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">취소</a>
-        <button id="submitBtn" type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">등록</button>
-      </div>
+      <!-- 카테고리 (다중 선택 가능) -->
+      <label class="block">카테고리 (쉼표로 구분)</label>
+      <input type="text" name="category" placeholder="예: 철학, 신학, 문학" class="w-full border p-2 rounded" />
+
+      <!-- 레벨 선택 -->
+      <label class="block">레벨</label>
+      <select name="level" class="w-full border p-2 rounded">
+        <option value="입문">입문</option>
+        <option value="초급">초급</option>
+        <option value="중급">중급</option>
+        <option value="고급">고급</option>
+        <option value="전문">전문</option>
+      </select>
+
+      <textarea name="reason" placeholder="추천 이유" class="w-full border p-2 rounded"></textarea>
+
+      <!-- 링크 -->
+      <input type="url" name="link.aladin" placeholder="알라딘 링크" class="w-full border p-2 rounded" />
+      <input type="url" name="link.kyobo" placeholder="교보문고 링크" class="w-full border p-2 rounded" />
+      <input type="url" name="link.yes24" placeholder="YES24 링크" class="w-full border p-2 rounded" />
+
+      <!-- 기타 -->
+      <input type="url" name="cover" placeholder="표지 이미지 URL" class="w-full border p-2 rounded" />
+      <input type="text" name="submitter" placeholder="등록자 이름/닉네임" class="w-full border p-2 rounded" />
+      <input type="email" name="email" placeholder="이메일 주소" class="w-full border p-2 rounded" />
+
+      <!-- 버튼 -->
+      <button id="submitBtn" type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        등록하기
+      </button>
     </form>
 
-    <!-- Status message -->
-    <p id="statusMsg" class="mt-4 text-center text-gray-600"></p>
+    <!-- 상태 표시 -->
+    <div id="statusMsg" class="mt-4 text-center text-gray-600"></div>
+
+    <!-- 하단 버튼 -->
+    <div class="mt-6 flex justify-between">
+      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
+      <a href="book.html" class="text-blue-600 hover:underline">📖 도서 리스트</a>
+    </div>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEMJ9D1bXqKdplunU81Xc0XGnDMW-7d1isBZG5lGvg7xOiV5WDWV3Nr6pEXHs3Uyw48Q/exec";
+
     const form = document.getElementById("bookForm");
     const statusMsg = document.getElementById("statusMsg");
     const submitBtn = document.getElementById("submitBtn");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      // 버튼 비활성화 + 로딩 표시
       submitBtn.disabled = true;
-      submitBtn.textContent = "등록 중...";
-      statusMsg.textContent = "";
+      statusMsg.textContent = "⏳ 등록 중...";
 
       const formData = new FormData(form);
-      const data = {};
-      formData.forEach((v, k) => (data[k] = v));
+      const data = { action: "addBook" };
+
+      formData.forEach((value, key) => {
+        if (key.includes(".")) {
+          // link.aladin 같은 필드는 객체로 변환
+          const [parent, child] = key.split(".");
+          if (!data[parent]) data[parent] = {};
+          data[parent][child] = value;
+        } else if (key === "category") {
+          data[key] = value.split(",").map(v => v.trim()).filter(v => v);
+        } else {
+          data[key] = value;
+        }
+      });
 
       try {
         const res = await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify(data),
         });
+        const result = await res.json();
 
-        if (res.ok) {
-          statusMsg.textContent = "✅ 도서가 등록되었습니다!";
+        if (result.result === "success") {
+          statusMsg.textContent = "✅ 도서가 성공적으로 등록되었습니다!";
           form.reset();
         } else {
-          statusMsg.textContent = "⚠️ 오류가 발생했습니다. 다시 시도해주세요.";
+          statusMsg.textContent = "⚠️ 오류: " + result.message;
         }
       } catch (err) {
-        statusMsg.textContent = "❌ 서버와 연결할 수 없습니다.";
+        statusMsg.textContent = "❌ 네트워크 오류";
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "등록";
       }
     });
   </script>
