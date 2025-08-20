@@ -6,70 +6,52 @@
   <title>북맵 — 도서 상세</title>
   <style>
     body { font-family: sans-serif; margin: 20px; background: #fafafa; }
-    h1 { font-size: 22px; margin-bottom: 10px; }
-    .container {
-      max-width: 700px; margin: 0 auto; background: white; padding: 20px;
-      border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    h1 { text-align: center; margin-bottom: 20px; }
+    .card {
+      max-width: 600px; margin: 0 auto; background: white; border-radius: 10px;
+      padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .cover { width: 100%; max-height: 400px; object-fit: contain; margin-bottom: 20px; background: #f0f0f0; border-radius: 6px; }
-    .meta { font-size: 14px; color: #555; margin: 6px 0; }
-    .desc { margin-top: 20px; line-height: 1.6; font-size: 15px; }
-    .loading { text-align: center; margin: 20px; display: none; }
+    img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 6px; background: #f0f0f0; }
+    .title { font-weight: bold; font-size: 20px; margin: 15px 0 10px; }
+    .meta { font-size: 14px; color: #666; margin-bottom: 12px; }
+    .desc { font-size: 15px; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; }
     .nav { text-align: center; margin-top: 20px; }
     .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div id="loading" class="loading">📡 불러오는 중...</div>
-  <div id="detail" class="container" style="display:none;"></div>
-
+  <h1>📖 도서 상세</h1>
+  <div id="bookDetail" class="card"></div>
   <div class="nav">
     <a href="index.html">🏠 홈</a>
-    <a href="book.html">📚 도서 리스트</a>
+    <a href="book.html">📚 도서 목록</a>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const loading = document.getElementById("loading");
-    const detail = document.getElementById("detail");
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("title");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const titleParam = urlParams.get("title");
+    async function fetchBook() {
+      const res = await fetch(API_URL);
+      const books = await res.json();
+      const book = books.find(b => b.title === title);
 
-    async function fetchBookDetail() {
-      loading.style.display = "block";
-      try {
-        const res = await fetch(API_URL + "?action=list");
-        const books = await res.json();
-
-        const book = books.find(b => b.title === titleParam);
-
-        if (!book) {
-          detail.innerHTML = "<p>❌ 해당 도서를 찾을 수 없습니다.</p>";
-        } else {
-          renderDetail(book);
-        }
-      } catch (err) {
-        alert("❌ 도서 불러오기 실패");
-      } finally {
-        loading.style.display = "none";
-        detail.style.display = "block";
+      if (!book) {
+        document.getElementById("bookDetail").innerHTML = "<p>❌ 도서를 찾을 수 없습니다.</p>";
+        return;
       }
-    }
 
-    function renderDetail(book) {
-      detail.innerHTML = `
-        <h1>${book.title}</h1>
-        <img class="cover" src="${book.cover || 'https://via.placeholder.com/300x400?text=No+Cover'}" alt="${book.title}">
-        <div class="meta"><strong>저자:</strong> ${book.author || "미상"}</div>
-        <div class="meta"><strong>출판사:</strong> ${book.publisher || "미상"}</div>
-        <div class="meta"><strong>카테고리:</strong> ${book.category || "분류 없음"}</div>
-        <div class="meta"><strong>난이도:</strong> ${book.level || "미정"}</div>
-        <div class="desc">${book.description || "설명이 없습니다."}</div>
+      document.getElementById("bookDetail").innerHTML = `
+        <img src="${book.cover || 'https://via.placeholder.com/200x300?text=No+Cover'}" alt="${book.title}">
+        <div class="title">${book.title}</div>
+        <div class="meta">${book.author || ''} | ${book.publisher || ''}</div>
+        <div class="desc">${book.description || ''}</div>
+        ${book.buy ? `<a href="${book.buy}" target="_blank">🛒 구매하기</a>` : ""}
       `;
     }
 
-    fetchBookDetail();
+    fetchBook();
   </script>
 </body>
 </html>
