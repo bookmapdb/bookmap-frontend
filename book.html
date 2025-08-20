@@ -1,136 +1,163 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BookMap — 도서 리스트</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>도서 리스트</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; background: #fafafa; color: #333; }
-    h1 { margin-bottom: 14px; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-    button.filter { padding: 6px 12px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; }
-    button.filter.active { background: #1a73e8; color: #fff; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-    .book-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px; cursor: pointer; transition: transform 0.2s; }
-    .book-card:hover { transform: translateY(-4px); }
-    .book-card img { width: 100%; height: 180px; object-fit: contain; background: #f9f9f9; border-radius: 8px; }
-    .nav { margin: 20px 0; }
-    .nav a { margin-right: 10px; text-decoration: none; color: #1a73e8; }
-    .loading { text-align: center; margin-top: 40px; font-size: 16px; }
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; color: #333; }
+    h1 { text-align: center; }
+
+    /* 버튼 */
+    .toolbar { text-align: center; margin-bottom: 20px; }
+    .toolbar button {
+      margin: 5px; padding: 8px 14px; border: none;
+      background: #1a73e8; color: white; border-radius: 6px; cursor: pointer;
+    }
+    .toolbar button:hover { background: #1558b0; }
+
+    /* 도서 카드 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; }
+    .book-card {
+      background: white; border-radius: 12px; padding: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      transition: transform 0.2s;
+    }
+    .book-card:hover { transform: scale(1.02); }
+    .book-card img {
+      width: 100%; height: 250px; object-fit: contain; border-radius: 8px;
+      background: #f5f5f5;
+    }
+    .book-card h3 { margin: 10px 0 5px; font-size: 16px; text-align: center; }
+    .book-card p { font-size: 13px; color: #555; text-align: center; }
+
+    /* 로딩 */
+    .loading { text-align: center; margin: 40px auto; color: #555; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none; }
+
+    /* 상단 네비 */
+    .nav { margin-bottom: 20px; text-align: center; }
+    .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>도서 리스트</h1>
+  <h1>📚 도서 리스트</h1>
+
   <div class="nav">
-    <a href="index.html">🏠 메인으로</a>
+    <a href="index.html">🏠 홈</a>
   </div>
 
-  <!-- 필터 영역 -->
-  <div id="category-filters" class="toolbar"></div>
-  <div id="level-filters" class="toolbar"></div>
-
-  <!-- 도서 리스트 -->
-  <div id="book-list" class="grid"></div>
+  <!-- 필터 버튼 -->
+  <div class="toolbar" id="filterBar">
+    <button onclick="filterBooks('all')">전체보기</button>
+  </div>
 
   <!-- 로딩 -->
-  <div id="loading" class="loading hidden">로딩 중입니다...</div>
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>로딩 중입니다...</p>
+  </div>
+
+  <!-- 도서 카드 리스트 -->
+  <div id="bookList" class="grid hidden"></div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
+
     let books = [];
-    let activeCategory = null;
-    let activeLevel = null;
 
-    function showLoading() {
-      document.getElementById("loading").classList.remove("hidden");
-    }
-    function hideLoading() {
-      document.getElementById("loading").classList.add("hidden");
-    }
-
-    async function loadBooks() {
-      showLoading();
+    async function fetchBooks() {
       try {
         const res = await fetch(API_URL + "?action=getBooks");
-        const data = await res.json();
-        books = data;
-        renderFilters();
-        renderBooks();
+        books = await res.json();
+
+        buildFilterButtons(books);
+        renderBooks(books);
+
       } catch (e) {
-        console.error("Error loading books", e);
-      } finally {
-        hideLoading();
+        document.getElementById("loading").innerHTML = "<p>❌ 데이터를 불러오는 중 오류가 발생했습니다.</p>";
       }
     }
 
-    function renderFilters() {
-      const categories = [...new Set(books.flatMap(b => (b.category ? b.category.split(",") : [])))];
-      const levels = ["입문", "초급", "중급", "고급", "전문"];
+    function buildFilterButtons(data) {
+      const categories = new Set();
+      const levels = new Set();
 
-      const catContainer = document.getElementById("category-filters");
-      catContainer.innerHTML = `<strong>카테고리:</strong>`;
-      categories.forEach(cat => {
-        const btn = document.createElement("button");
-        btn.className = "filter";
-        btn.innerText = cat.trim();
-        btn.onclick = () => {
-          activeCategory = activeCategory === cat ? null : cat;
-          renderBooks();
-          renderFilters();
-        };
-        if (activeCategory === cat) btn.classList.add("active");
-        catContainer.appendChild(btn);
+      data.forEach(b => {
+        (b.category || "").split(",").forEach(c => c.trim() && categories.add(c.trim()));
+        (b.level || "").split(",").forEach(l => l.trim() && levels.add(l.trim()));
       });
 
-      const levelContainer = document.getElementById("level-filters");
-      levelContainer.innerHTML = `<strong>레벨:</strong>`;
-      levels.forEach(lv => {
+      const bar = document.getElementById("filterBar");
+
+      categories.forEach(c => {
         const btn = document.createElement("button");
-        btn.className = "filter";
-        btn.innerText = lv;
-        btn.onclick = () => {
-          activeLevel = activeLevel === lv ? null : lv;
-          renderBooks();
-          renderFilters();
-        };
-        if (activeLevel === lv) btn.classList.add("active");
-        levelContainer.appendChild(btn);
+        btn.textContent = "카테고리: " + c;
+        btn.onclick = () => filterBooks(c);
+        bar.appendChild(btn);
+      });
+
+      levels.forEach(l => {
+        const btn = document.createElement("button");
+        btn.textContent = "레벨: " + l;
+        btn.onclick = () => filterBooks(l);
+        bar.appendChild(btn);
       });
     }
 
-    function renderBooks() {
-      const list = document.getElementById("book-list");
-      list.innerHTML = "";
-      let filtered = books;
-      if (activeCategory) {
-        filtered = filtered.filter(b => b.category && b.category.includes(activeCategory));
+    function filterBooks(keyword) {
+      if (keyword === "all") {
+        renderBooks(books);
+      } else {
+        const filtered = books.filter(b =>
+          (b.category && b.category.includes(keyword)) ||
+          (b.level && b.level.includes(keyword))
+        );
+        renderBooks(filtered);
       }
-      if (activeLevel) {
-        filtered = filtered.filter(b => b.level && b.level.includes(activeLevel));
+    }
+
+    function renderBooks(list) {
+      const container = document.getElementById("bookList");
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = "<p>등록된 도서가 없습니다.</p>";
       }
-      if (filtered.length === 0) {
-        list.innerHTML = "<p>해당 조건의 도서가 없습니다.</p>";
-        return;
-      }
-      filtered.forEach(book => {
+
+      list.forEach(book => {
         const card = document.createElement("div");
         card.className = "book-card";
         card.onclick = () => viewDetail(book.title);
 
         card.innerHTML = `
-          <img src="${book.cover || ''}" alt="${book.title}">
+          <img src="${book.cover}" alt="${book.title}">
           <h3>${book.title}</h3>
-          <p>${book.author || ''} / ${book.publisher || ''}</p>
+          <p>${book.author || ""} / ${book.publisher || ""}</p>
         `;
-        list.appendChild(card);
+
+        container.appendChild(card);
       });
+
+      document.getElementById("loading").classList.add("hidden");
+      container.classList.remove("hidden");
     }
 
     function viewDetail(title) {
-      window.location.href = "detail.html?title=" + encodeURIComponent(title);
+      window.location.href = `book-detail.html?title=${encodeURIComponent(title)}`;
     }
 
-    loadBooks();
+    fetchBooks();
   </script>
 </body>
 </html>
