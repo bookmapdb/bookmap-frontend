@@ -1,124 +1,145 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BookMap — 도서 리스트</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>북맵 — 도서 리스트</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; background: #fafafa; }
-    h1 { font-size: 22px; margin-bottom: 16px; }
-    .filters { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-    select, button {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: white;
-      cursor: pointer;
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; }
+    h1 { text-align: center; margin-bottom: 20px; }
+
+    .filters { margin-bottom: 20px; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 10px 0; }
+    .filter-group h3 { flex-basis: 100%; text-align: center; font-size: 14px; color: #444; margin-bottom: 5px; }
+
+    .filters button {
+      padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px;
+      background: white; cursor: pointer; font-size: 14px;
     }
-    table { border-collapse: collapse; width: 100%; max-width: 900px; background: white; }
-    th, td {
-      border: 1px solid #ddd; padding: 8px; text-align: left;
+    .filters button.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+
+    .book-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 20px; }
+    .card {
+      background: white; border-radius: 10px; padding: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+      transition: transform 0.2s;
     }
-    th { background: #f3f4f6; }
+    .card:hover { transform: scale(1.02); }
+    .card img { width: 100%; height: 180px; object-fit: contain; border-radius: 6px; background: #f0f0f0; }
+    .title { font-weight: bold; margin: 10px 0 6px; font-size: 15px; }
+    .meta { font-size: 13px; color: #666; }
+
+    .loading { text-align: center; margin: 20px; display: none; }
+    .nav { text-align: center; margin-top: 20px; }
+    .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>승인된 도서 리스트</h1>
+  <h1>📚 도서 리스트</h1>
 
-  <!-- 🔎 필터 영역 -->
-  <div class="filters">
-    <label>
-      카테고리:
-      <select id="categoryFilter">
-        <option value="">전체</option>
-        <option value="기독교">기독교</option>
-        <option value="신학">신학</option>
-        <option value="역사">역사</option>
-        <option value="철학">철학</option>
-        <option value="문학">문학</option>
-      </select>
-    </label>
-    <label>
-      레벨:
-      <select id="levelFilter">
-        <option value="">전체</option>
-        <option value="입문">입문</option>
-        <option value="초급">초급</option>
-        <option value="중급">중급</option>
-        <option value="고급">고급</option>
-        <option value="전문">전문</option>
-      </select>
-    </label>
-    <button onclick="applyFilter()">필터 적용</button>
-    <button onclick="resetFilter()">초기화</button>
+  <div id="filters" class="filters"></div>
+  <div id="loading" class="loading">📡 불러오는 중...</div>
+  <div id="bookList" class="book-list"></div>
+
+  <div class="nav">
+    <a href="index.html">🏠 홈</a>
   </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>제목</th>
-        <th>저자</th>
-        <th>출판사</th>
-        <th>카테고리</th>
-        <th>레벨</th>
-      </tr>
-    </thead>
-    <tbody id="bookList"></tbody>
-  </table>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    let allBooks = [];
+    const loading = document.getElementById("loading");
+    const bookList = document.getElementById("bookList");
+    const filters = document.getElementById("filters");
 
-    async function loadBooks() {
+    let books = [];
+    let activeFilter = "전체보기";
+
+    // 기본 카테고리 + 난이도
+    const DEFAULT_CATEGORIES = ["철학", "역사", "문학", "종교", "예술", "사회과학", "자연과학"];
+    const FIXED_LEVELS = ["입문", "초급", "중급", "고급", "전문"];
+
+    async function fetchBooks() {
+      loading.style.display = "block";
       try {
-        const res = await fetch(API_URL + "?action=list");
-        allBooks = await res.json();
-        renderBooks(allBooks);
+        const res = await fetch(API_URL);
+        books = await res.json();
+        renderFilters();
+        renderBooks();
       } catch (err) {
-        alert("❌ 도서 목록 불러오기 실패");
+        alert("❌ 도서 불러오기 실패");
+      } finally {
+        loading.style.display = "none";
       }
     }
 
-    function renderBooks(books) {
-      const tbody = document.getElementById("bookList");
-      tbody.innerHTML = "";
-      if (books.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5">📭 검색 결과가 없습니다.</td></tr>`;
-        return;
-      }
+    function renderFilters() {
+      filters.innerHTML = "";
+
+      // 전체보기
+      const allBtn = createFilterButton("전체보기");
+      filters.appendChild(allBtn);
+
+      // 카테고리 그룹
+      const categoryGroup = document.createElement("div");
+      categoryGroup.className = "filter-group";
+      categoryGroup.innerHTML = "<h3>📂 카테고리</h3>";
+
+      const categories = new Set(DEFAULT_CATEGORIES);
       books.forEach(book => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${book["제목"] || ""}</td>
-          <td>${book["저자"] || ""}</td>
-          <td>${book["출판사"] || ""}</td>
-          <td>${book["카테고리"] || "-"}</td>
-          <td>${book["레벨"] || "-"}</td>
-        `;
-        tbody.appendChild(tr);
+        if (book.category) {
+          const cats = Array.isArray(book.category) ? book.category : book.category.split(",");
+          cats.forEach(c => categories.add(c.trim()));
+        }
       });
+      categories.forEach(cat => categoryGroup.appendChild(createFilterButton(cat)));
+      filters.appendChild(categoryGroup);
+
+      // 레벨 그룹
+      const levelGroup = document.createElement("div");
+      levelGroup.className = "filter-group";
+      levelGroup.innerHTML = "<h3>📊 난이도</h3>";
+
+      FIXED_LEVELS.forEach(lvl => levelGroup.appendChild(createFilterButton(lvl)));
+      filters.appendChild(levelGroup);
     }
 
-    function applyFilter() {
-      const category = document.getElementById("categoryFilter").value;
-      const level = document.getElementById("levelFilter").value;
-
-      const filtered = allBooks.filter(book => {
-        return (category === "" || book["카테고리"] === category) &&
-               (level === "" || book["레벨"] === level);
+    function createFilterButton(label) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      if (label === activeFilter) btn.classList.add("active");
+      btn.addEventListener("click", () => {
+        activeFilter = label;
+        renderFilters();
+        renderBooks();
       });
-
-      renderBooks(filtered);
+      return btn;
     }
 
-    function resetFilter() {
-      document.getElementById("categoryFilter").value = "";
-      document.getElementById("levelFilter").value = "";
-      renderBooks(allBooks);
+    function renderBooks() {
+      bookList.innerHTML = "";
+      books
+        .filter(book => {
+          if (activeFilter === "전체보기") return true;
+          const catMatch = book.category && book.category.includes(activeFilter);
+          const lvlMatch = book.level && book.level.includes(activeFilter);
+          return catMatch || lvlMatch;
+        })
+        .forEach(book => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${book.cover || 'https://via.placeholder.com/150x200?text=No+Cover'}" alt="${book.title}">
+            <div class="title">${book.title}</div>
+            <div class="meta">${book.author || ''} | ${book.publisher || ''}</div>
+          `;
+          card.addEventListener("click", () => {
+            window.location.href = `book-detail.html?title=${encodeURIComponent(book.title)}`;
+          });
+          bookList.appendChild(card);
+        });
     }
 
-    loadBooks();
+    fetchBooks();
   </script>
 </body>
 </html>
