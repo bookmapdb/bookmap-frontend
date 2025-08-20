@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>도서 리스트 - BookMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-6xl mx-auto p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">📖 도서 리스트</h1>
+      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
+    </div>
+
+    <!-- Book Grid -->
+    <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <!-- 카드가 JS로 렌더링됩니다 -->
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-10 text-center">
+      <button onclick="history.back()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+        ← 뒤로가기
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEMJ9D1bXqKdplunU81Xc0XGnDMW-7d1isBZG5lGvg7xOiV5WDWV3Nr6pEXHs3Uyw48Q/exec";
+    const bookList = document.getElementById("bookList");
+
+    // 도서 목록 불러오기
+    async function loadBooks() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          bookList.innerHTML = "<p class='text-center text-gray-500'>도서를 불러올 수 없습니다.</p>";
+          return;
+        }
+
+        bookList.innerHTML = data.map(book => `
+          <div class="bg-white shadow rounded-xl overflow-hidden hover:shadow-lg transition">
+            <img src="${book.cover || 'https://via.placeholder.com/300x400?text=No+Image'}" 
+                 alt="${book.title}" class="w-full h-64 object-cover">
+            <div class="p-4">
+              <h2 class="text-lg font-semibold mb-1">${book.title}</h2>
+              <p class="text-sm text-gray-600 mb-1">${book.author} · ${book.publisher || ''}</p>
+              <p class="text-sm text-gray-500 mb-2">레벨: ${book.level || '-'}</p>
+              <a href="book-detail.html?id=${encodeURIComponent(book.title)}" 
+                 class="inline-block mt-2 text-blue-600 hover:underline">자세히 보기 →</a>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        bookList.innerHTML = "<p class='text-center text-red-500'>❌ 오류가 발생했습니다.</p>";
+      }
+    }
+
+    loadBooks();
+  </script>
+</body>
+</html>
