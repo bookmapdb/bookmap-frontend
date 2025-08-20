@@ -1,50 +1,38 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BookMap — 홈</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>북맵 — 메인</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; color: #333; text-align: center; }
+    h1 { font-size: 24px; margin-bottom: 12px; }
+    p { font-size: 15px; color: #555; margin-bottom: 20px; }
+
+    .btn {
+      display: inline-block; margin: 10px; padding: 12px 20px;
+      border: none; border-radius: 8px;
+      background: #1a73e8; color: white;
+      font-size: 15px; cursor: pointer; text-decoration: none;
+    }
+    .btn:hover { background: #1558b0; }
+
+    footer { margin-top: 40px; font-size: 13px; color: #777; }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800 min-h-screen flex flex-col">
+<body>
+  <h1>📖 북맵(BookMap)</h1>
+  <p>이 사이트는 좋은 도서를 함께 기록하고 공유하기 위한 서비스입니다.<br>
+     누구나 책을 등록할 수 있고, 관리자의 승인 후 목록에 반영됩니다.</p>
 
-  <!-- Hero Section -->
-  <header class="flex-1 flex flex-col items-center justify-center text-center px-6">
-    <h1 class="text-4xl md:text-5xl font-bold mb-4">📚 BookMap</h1>
-    <p class="text-lg md:text-xl text-gray-600 max-w-2xl">
-      독서와 지식을 나누는 공간, BookMap.<br>
-      이곳에서 새로운 책을 발견하고, 직접 추천해보세요.
-    </p>
-  </header>
+  <div>
+    <a href="form.html" class="btn">✍️ 도서 등록</a>
+    <a href="book.html" class="btn">📚 도서 리스트</a>
+    <a href="admin.html" class="btn">🛠 관리자 전용</a>
+  </div>
 
-  <!-- Action Buttons -->
-  <main class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 max-w-5xl mx-auto mb-16">
-    <!-- 도서 등록 -->
-    <a href="form.html" class="group bg-white rounded-2xl shadow hover:shadow-lg p-8 flex flex-col items-center transition">
-      <div class="text-4xl mb-4">✍️</div>
-      <h2 class="text-xl font-semibold mb-2">도서 등록</h2>
-      <p class="text-gray-500 text-center">새로운 도서를 직접 추천하고 공유하세요.</p>
-    </a>
-
-    <!-- 도서 리스트 -->
-    <a href="book.html" class="group bg-white rounded-2xl shadow hover:shadow-lg p-8 flex flex-col items-center transition">
-      <div class="text-4xl mb-4">📖</div>
-      <h2 class="text-xl font-semibold mb-2">도서 리스트</h2>
-      <p class="text-gray-500 text-center">등록된 도서를 카드 형태로 탐색하세요.</p>
-    </a>
-
-    <!-- 관리자 페이지 -->
-    <a href="admin.html" class="group bg-white rounded-2xl shadow hover:shadow-lg p-8 flex flex-col items-center transition">
-      <div class="text-4xl mb-4">🛠️</div>
-      <h2 class="text-xl font-semibold mb-2">관리자</h2>
-      <p class="text-gray-500 text-center">승인, 반려, 편집은 관리자만 접근 가능합니다.</p>
-    </a>
-  </main>
-
-  <!-- Footer -->
-  <footer class="text-center text-gray-400 text-sm pb-6">
-    © 2025 BookMap — All rights reserved.
+  <footer>
+    &copy; 2025 BookMap. All rights reserved.
   </footer>
-
 </body>
 </html>
