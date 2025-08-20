@@ -2,75 +2,81 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>📖 도서 상세</title>
-  <style>
-    body { font-family: sans-serif; background: #f0f4f8; color: #1f2937; margin: 0; padding: 20px; }
-    .card { max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-    .card-content { text-align: center; }
-    .card-content img { max-width: 250px; height: auto; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h2 { font-size: 26px; margin: 0 0 8px; color: #1a73e8; }
-    p { color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
-    .meta { font-size: 15px; color: #4b5563; }
-    .description { margin-top: 20px; text-align: left; border-top: 1px solid #e5e7eb; padding-top: 20px; }
-    .links a { display: inline-block; padding: 8px 16px; margin: 8px 5px 0; border-radius: 8px; font-size: 14px; text-decoration: none; font-weight: bold; }
-    .aladin-link { background: #ff6f61; color: #fff; }
-    .kyobo-link { background: #1e40af; color: #fff; }
-    .yes24-link { background: #059669; color: #fff; }
-    nav { text-align: center; margin-top: 25px; }
-    nav a { margin: 0 12px; text-decoration: none; font-size: 15px; color: #1a73e8; font-weight: 500; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMap — 도서 상세정보</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="card" id="book-detail">
-    <p>로딩 중...</p>
-  </div>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="book.html">📚 도서 목록</a>
-  </nav>
+<body class="bg-gray-50 text-gray-800">
+  <!-- 상단 네비게이션 -->
+  <header class="bg-blue-600 text-white shadow">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">📚 BookMap</h1>
+      <nav class="text-sm">
+        <a href="index.html" class="hover:underline">홈</a> ·
+        <a href="book.html" class="hover:underline">북맵 리스트</a> ·
+        <span class="font-semibold">도서 상세</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="max-w-4xl mx-auto px-6 py-12">
+    <div id="bookDetail" class="bg-white rounded-2xl shadow p-8 flex flex-col lg:flex-row gap-8">
+      <!-- 데이터가 JS로 채워짐 -->
+      <p class="text-center text-gray-500 w-full">불러오는 중...</p>
+    </div>
+  </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const params = new URLSearchParams(window.location.search);
-    const titleParam = params.get("title");
-    const title = decodeURIComponent(titleParam || "").trim();
+    const API_URL = "https://script.google.com/macros/s/AKfycbwcJ2aaqVvEhxcGdJakKjsmizPBNXzScw2NVWsQ2VNammR0bncJpk68NOYcjgUW6wOf/exec";
+    const bookDetail = document.getElementById("bookDetail");
 
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        const book = data.find(b => (b.title || "").trim() === title);
-        const container = document.getElementById("book-detail");
+    // URL 파라미터에서 id 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get("id");
 
-        if (!book) {
-          container.innerHTML = `<p>책 정보를 찾을 수 없습니다.</p>`;
-          return;
-        }
+    async function fetchBooks() {
+      const res = await fetch(API_URL);
+      return res.json();
+    }
 
-        container.innerHTML = `
-          <div class="card-content">
-            <img src="${book.cover || 'https://via.placeholder.com/250x350?text=No+Cover'}" alt="${book.title}">
-            <h2>${book.title}</h2>
-            <p class="meta">${book.author || ''} | ${book.publisher || ''}</p>
-            <p class="meta"><strong>카테고리:</strong> ${book.category || 'N/A'}</p>
-            <p class="meta"><strong>난이도:</strong> ${book.level || 'N/A'}</p>
-            
-            <div class="description">
-              <p>${book.description || '책 소개가 없습니다.'}</p>
-            </div>
-            
-            <div class="links">
-              ${book.aladin ? `<a href="${book.aladin}" target="_blank" class="aladin-link">🔗 알라딘</a>` : ''}
-              ${book.kyobo ? `<a href="${book.kyobo}" target="_blank" class="kyobo-link">📘 교보문고</a>` : ''}
-              ${book.yes24 ? `<a href="${book.yes24}" target="_blank" class="yes24-link">📚 예스24</a>` : ''}
-            </div>
+    async function loadBook() {
+      const books = await fetchBooks();
+      const book = books.find(b => b.id == bookId);
+
+      if (!book) {
+        bookDetail.innerHTML = `<p class="text-center text-gray-500 w-full">❌ 해당 도서를 찾을 수 없습니다.</p>`;
+        return;
+      }
+
+      bookDetail.innerHTML = `
+        <div class="flex-shrink-0 w-full lg:w-1/3">
+          <img src="${book.image || 'https://via.placeholder.com/300x400?text=No+Cover'}"
+               alt="${book.title}"
+               class="w-full h-auto rounded-lg shadow">
+        </div>
+        <div class="flex-1 space-y-4">
+          <h2 class="text-2xl font-bold">${book.title}</h2>
+          <p class="text-gray-700"><span class="font-semibold">저자:</span> ${book.author || "-"}</p>
+          <p class="text-gray-700"><span class="font-semibold">출판사:</span> ${book.publisher || "-"}</p>
+          <p class="text-gray-700"><span class="font-semibold">단계:</span> ${book.level || "-"}</p>
+          <p class="text-gray-700"><span class="font-semibold">카테고리:</span> ${book.category || "-"}</p>
+          
+          <div class="border-t pt-4">
+            <p class="text-gray-700 whitespace-pre-line">${book.description || "등록된 상세 설명이 없습니다."}</p>
           </div>
-        `;
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        alert("도서 상세 정보를 불러오는데 실패했습니다.");
-      });
+
+          <!-- 링크 버튼 -->
+          <div class="flex flex-wrap gap-3 pt-4">
+            ${book.link_aladin ? `<a href="${book.link_aladin}" target="_blank" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">알라딘</a>` : ""}
+            ${book.link_kyobo ? `<a href="${book.link_kyobo}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">교보문고</a>` : ""}
+            ${book.link_yes24 ? `<a href="${book.link_yes24}" target="_blank" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">예스24</a>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    loadBook();
   </script>
 </body>
 </html>
