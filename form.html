@@ -1,29 +1,54 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>BookMap — 도서 등록</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 20px; background: #fafafa; }
-    h1 { font-size: 22px; }
-    form { display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
-    label { font-weight: bold; }
-    input, button {
-      padding: 8px; border: 1px solid #ccc; border-radius: 6px;
-    }
-    button {
-      background: #1a73e8; color: white; font-weight: bold; cursor: pointer;
-    }
-    button:hover { background: #1558c0; }
+    h1 { font-size: 22px; margin-bottom: 20px; }
+    form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, select { width: 100%; padding: 8px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; }
+    button { margin-top: 20px; padding: 10px; width: 100%; border: none; border-radius: 6px; background: #1a73e8; color: white; font-size: 16px; cursor: pointer; }
+    button:hover { background: #155ab6; }
   </style>
 </head>
 <body>
-  <h1>도서 등록</h1>
+  <h1>📖 도서 등록</h1>
   <form id="bookForm">
-    <label>제목 <input type="text" name="title" required /></label>
-    <label>저자 <input type="text" name="author" required /></label>
-    <label>출판사 <input type="text" name="publisher" required /></label>
+    <label>제목<input type="text" name="title" required></label>
+    <label>저자<input type="text" name="author" required></label>
+    <label>출판사<input type="text" name="publisher"></label>
+    <label>표지 이미지(URL)<input type="url" name="cover"></label>
+
+    <!-- ✅ 카테고리 선택 -->
+    <label>카테고리
+      <select name="category" required>
+        <option value="">-- 선택 --</option>
+        <option value="기독교">기독교</option>
+        <option value="개신교">개신교</option>
+        <option value="신학">신학</option>
+        <option value="철학">철학</option>
+        <option value="역사">역사</option>
+        <option value="문학">문학</option>
+        <option value="사회과학">사회과학</option>
+        <option value="자연과학">자연과학</option>
+      </select>
+    </label>
+
+    <!-- ✅ 난이도 선택 -->
+    <label>레벨
+      <select name="level" required>
+        <option value="">-- 선택 --</option>
+        <option value="입문">입문</option>
+        <option value="초급">초급</option>
+        <option value="중급">중급</option>
+        <option value="고급">고급</option>
+        <option value="전문">전문</option>
+      </select>
+    </label>
+
     <button type="submit">등록하기</button>
   </form>
 
@@ -33,17 +58,23 @@
     document.getElementById("bookForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      const params = new URLSearchParams();
-      formData.forEach((v, k) => params.append(k, v));
-      params.append("action", "add");
+      const data = Object.fromEntries(formData.entries());
 
-      const res = await fetch(API_URL + "?" + params.toString());
-      const result = await res.json();
-      if (result.success) {
-        alert("✅ 도서가 등록되었습니다! (자동 승인)");
-        e.target.reset();
-      } else {
-        alert("❌ 등록 실패: " + (result.error || "알 수 없는 오류"));
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" }
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert("✅ 도서가 등록되었습니다!");
+          e.target.reset();
+        } else {
+          alert("❌ 등록 실패: " + (result.error || "알 수 없는 오류"));
+        }
+      } catch (err) {
+        alert("⚠️ 서버 오류: " + err.message);
       }
     });
   </script>
