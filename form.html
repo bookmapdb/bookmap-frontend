@@ -2,82 +2,128 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>북맵 — 도서 등록</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>📚 도서 등록</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; background: #fafafa; }
-    h1 { text-align: center; margin-bottom: 20px; }
-    form { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
-    input, textarea, select {
-      width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f9fafb;
+      margin: 20px;
+      color: #1f2937;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
     button {
-      margin-top: 20px; padding: 12px; width: 100%; border: none;
-      background: #1a73e8; color: white; font-size: 15px; border-radius: 8px; cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
     }
-    .loading { text-align: center; margin-top: 10px; display: none; color: #444; }
-    .nav { text-align: center; margin-top: 20px; }
-    .nav a { margin: 0 10px; color: #1a73e8; text-decoration: none; font-weight: bold; }
+    button:hover {
+      background: #1d4ed8;
+    }
+    nav {
+      text-align: center;
+      margin-top: 20px;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <h1>✍️ 도서 등록</h1>
+  <h1>📚 도서 등록</h1>
   <form id="bookForm">
-    <label>도서명 <input type="text" name="title" required></label>
-    <label>저자 <input type="text" name="author"></label>
-    <label>출판사 <input type="text" name="publisher"></label>
-    <label>카테고리 <input type="text" name="category" placeholder="예: 기독교, 신학"></label>
-    <label>난이도
-      <select name="level">
-        <option value="">선택</option>
-        <option>입문</option>
-        <option>초급</option>
-        <option>중급</option>
-        <option>고급</option>
-        <option>전문</option>
-      </select>
-    </label>
-    <label>표지 이미지 URL <input type="url" name="cover"></label>
-    <label>구매 링크 <input type="url" name="buy"></label>
-    <label>설명 <textarea name="description"></textarea></label>
-    <button type="submit" id="submitBtn">등록하기</button>
-    <div class="loading" id="loading">⏳ 등록중...</div>
+    <label>제목</label>
+    <input type="text" name="제목" required>
+
+    <label>저자</label>
+    <input type="text" name="저자" required>
+
+    <label>출판사</label>
+    <input type="text" name="출판사" required>
+
+    <label>이미지 URL</label>
+    <input type="url" name="이미지" placeholder="https://example.com/book.jpg">
+
+    <label>설명</label>
+    <textarea name="설명" placeholder="책 소개를 입력하세요"></textarea>
+
+    <label>알라딘 링크</label>
+    <input type="url" name="알라딘" placeholder="https://www.aladin.co.kr/...">
+
+    <label>교보 링크</label>
+    <input type="url" name="교보" placeholder="https://www.kyobobook.co.kr/...">
+
+    <label>예스24 링크</label>
+    <input type="url" name="YES24" placeholder="https://www.yes24.com/...">
+
+    <button type="submit">등록하기</button>
   </form>
-  <div class="nav">
+
+  <nav>
     <a href="index.html">🏠 홈</a>
-    <a href="book.html">📖 도서 리스트</a>
-  </div>
+    <a href="book.html">📚 도서 목록</a>
+  </nav>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
-    const form = document.getElementById("bookForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const loading = document.getElementById("loading");
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("bookForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      submitBtn.disabled = true;
-      loading.style.display = "block";
-
-      const formData = new FormData(form);
+      const formData = new FormData(this);
       const data = {};
-      formData.forEach((v, k) => data[k] = v);
+      formData.forEach((value, key) => data[key] = value);
 
-      try {
-        await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        });
-        alert("✅ 도서가 등록되었습니다!");
-        form.reset();
-      } catch (err) {
-        alert("❌ 등록 실패");
-      } finally {
-        submitBtn.disabled = false;
-        loading.style.display = "none";
-      }
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(result => {
+        alert("도서가 등록되었습니다!");
+        window.location.href = "book.html";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("등록 실패. 다시 시도해주세요.");
+      });
     });
   </script>
 </body>
