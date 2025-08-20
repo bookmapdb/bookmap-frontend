@@ -5,67 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>📖 도서 상세</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f9fafb;
-      margin: 20px;
-      color: #1f2937;
-    }
-    h1 {
-      text-align: center;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    .card {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .card img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-    h2 {
-      font-size: 20px;
-      margin: 0 0 8px;
-    }
-    p {
-      color: #6b7280;
-      margin: 0 0 12px;
-    }
-    .desc {
-      margin: 12px 0;
-      line-height: 1.6;
-    }
-    .links a {
-      display: inline-block;
-      margin: 6px 8px 0 0;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #fff;
-    }
-    .aladin { background: #ff6f61; }
-    .kyobo { background: #1e40af; }
-    .yes24 { background: #059669; }
-    nav {
-      text-align: center;
-      margin-top: 20px;
-    }
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      font-size: 14px;
-    }
+    body { font-family: sans-serif; background: #f0f4f8; color: #1f2937; margin: 0; padding: 20px; }
+    .card { max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .card-content { text-align: center; }
+    .card-content img { max-width: 250px; height: auto; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h2 { font-size: 26px; margin: 0 0 8px; color: #1a73e8; }
+    p { color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .meta { font-size: 15px; color: #4b5563; }
+    .description { margin-top: 20px; text-align: left; border-top: 1px solid #e5e7eb; padding-top: 20px; }
+    .links a { display: inline-block; padding: 8px 16px; margin: 8px 5px 0; border-radius: 8px; font-size: 14px; text-decoration: none; font-weight: bold; }
+    .aladin-link { background: #ff6f61; color: #fff; }
+    .kyobo-link { background: #1e40af; color: #fff; }
+    .yes24-link { background: #059669; color: #fff; }
+    nav { text-align: center; margin-top: 25px; }
+    nav a { margin: 0 12px; text-decoration: none; font-size: 15px; color: #1a73e8; font-weight: 500; }
   </style>
 </head>
 <body>
-  <h1>📚 도서 상세</h1>
   <div class="card" id="book-detail">
     <p>로딩 중...</p>
   </div>
@@ -75,42 +31,46 @@
   </nav>
 
   <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
+    const params = new URLSearchParams(window.location.search);
+    const titleParam = params.get("title");
+    const title = decodeURIComponent(titleParam || "").trim();
 
-  const params = new URLSearchParams(window.location.search);
-  const titleParam = params.get("title");
-  const title = decodeURIComponent(titleParam || "").trim();  // ✅ decode + trim
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const book = data.find(b => (b.title || "").trim() === title);
+        const container = document.getElementById("book-detail");
 
-  fetch(API_URL + "?action=list")
-    .then(res => res.json())
-    .then(data => {
-      const book = data.find(b => (b.제목 || "").trim() === title); // ✅ trim 비교
-      const container = document.getElementById("bookDetail");
+        if (!book) {
+          container.innerHTML = `<p>책 정보를 찾을 수 없습니다.</p>`;
+          return;
+        }
 
-      if (!book) {
-        container.innerHTML = `<p>책 정보를 찾을 수 없습니다.</p>`;
-        return;
-      }
-
-      container.innerHTML = `
-        <div style="max-width:600px;margin:0 auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);text-align:center;">
-          <img src="${book.이미지 || ''}" alt="${book.제목}" style="max-width:200px;margin-bottom:16px;">
-          <h2>${book.제목}</h2>
-          <p>${book.저자} | ${book.출판사}</p>
-          <p>${book.설명 || ''}</p>
-
-          <div style="margin-top:16px;">
-            ${book.알라딘 ? `<a href="${book.알라딘}" target="_blank">🔗 알라딘</a>` : ''}
-            ${book.교보 ? `<a href="${book.교보}" target="_blank">📘 교보문고</a>` : ''}
-            ${book.YES24 ? `<a href="${book.YES24}" target="_blank">📚 예스24</a>` : ''}
+        container.innerHTML = `
+          <div class="card-content">
+            <img src="${book.cover || 'https://via.placeholder.com/250x350?text=No+Cover'}" alt="${book.title}">
+            <h2>${book.title}</h2>
+            <p class="meta">${book.author || ''} | ${book.publisher || ''}</p>
+            <p class="meta"><strong>카테고리:</strong> ${book.category || 'N/A'}</p>
+            <p class="meta"><strong>난이도:</strong> ${book.level || 'N/A'}</p>
+            
+            <div class="description">
+              <p>${book.description || '책 소개가 없습니다.'}</p>
+            </div>
+            
+            <div class="links">
+              ${book.aladin ? `<a href="${book.aladin}" target="_blank" class="aladin-link">🔗 알라딘</a>` : ''}
+              ${book.kyobo ? `<a href="${book.kyobo}" target="_blank" class="kyobo-link">📘 교보문고</a>` : ''}
+              ${book.yes24 ? `<a href="${book.yes24}" target="_blank" class="yes24-link">📚 예스24</a>` : ''}
+            </div>
           </div>
-        </div>
-      `;
-    })
-    .catch(err => {
-      console.error(err);
-      alert("불러오기 실패");
-    });
-</script>
+        `;
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        alert("도서 상세 정보를 불러오는데 실패했습니다.");
+      });
+  </script>
 </body>
 </html>
