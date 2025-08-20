@@ -54,6 +54,23 @@
       text-align: left;
       color: var(--text);
     }
+    .links {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .aladin { background: #2a9d8f; }
+    .kyobo { background: #4361ee; }
+    .yes24 { background: #e63946; }
     .toolbar {
       margin-top: 20px;
       text-align: center;
@@ -76,7 +93,7 @@
   </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec"; // ← 여기 Apps Script URL 넣으세요
+    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
 
     async function loadBookDetail() {
       const params = new URLSearchParams(window.location.search);
@@ -97,6 +114,11 @@
           <h2>${book.제목}</h2>
           <p>${book.저자} | ${book.출판사}</p>
           <div class="desc">${book.설명 || "설명 없음"}</div>
+          <div class="links">
+            ${book.알라딘 ? `<a class="aladin" href="${book.알라딘}" target="_blank">알라딘</a>` : ""}
+            ${book.교보 ? `<a class="kyobo" href="${book.교보}" target="_blank">교보</a>` : ""}
+            ${book.YES24 ? `<a class="yes24" href="${book.YES24}" target="_blank">예스24</a>` : ""}
+          </div>
         `;
       } catch (err) {
         document.getElementById("book-detail").innerHTML = "<p>데이터 불러오기 실패</p>";
