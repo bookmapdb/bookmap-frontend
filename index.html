@@ -3,93 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>북맵 — 홈</title>
+  <title>북맵 — 메인</title>
   <style>
     body {
-      font-family: "Noto Sans KR", sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       margin: 0;
-      background: linear-gradient(135deg,#f9fafb,#f3f4f6);
+      padding: 0;
+      background: #f9fafb;
       color: #1f2937;
       display: flex;
       flex-direction: column;
+      align-items: center;
       min-height: 100vh;
     }
     header {
+      background: #1a73e8;
+      color: white;
+      width: 100%;
+      padding: 20px;
       text-align: center;
-      padding: 50px 20px 30px;
-    }
-    header h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-    header p {
-      font-size: 16px;
-      color: #555;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
+      font-size: 20px;
+      font-weight: bold;
     }
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      padding: 30px 20px;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    main p {
+      font-size: 16px;
+      color: #374151;
+      margin-bottom: 30px;
+      max-width: 600px;
+      line-height: 1.6;
     }
     .buttons {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 40px;
+      flex-direction: column;
+      gap: 12px;
+      width: 220px;
     }
     .buttons a {
-      display: inline-block;
-      padding: 14px 28px;
+      display: block;
+      padding: 14px;
+      text-align: center;
+      background: white;
+      color: #1a73e8;
+      border: 2px solid #1a73e8;
       border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
       font-size: 16px;
-      color: white;
-      transition: transform 0.2s, background 0.3s;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.2s;
     }
-    .register { background: #16a34a; } /* green */
-    .list { background: #1d4ed8; }     /* blue */
-    .admin { background: #7c3aed; }    /* purple */
     .buttons a:hover {
-      transform: translateY(-3px);
-      opacity: 0.9;
+      background: #1a73e8;
+      color: white;
     }
     footer {
-      text-align: center;
       padding: 15px;
       font-size: 13px;
-      color: #777;
-      border-top: 1px solid #e5e7eb;
-      background: #f9fafb;
+      color: #6b7280;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📚 북맵 (BookMap)</h1>
-    <p>
-      북맵은 신학·인문학 중심의 도서 아카이브 서비스입니다.<br>
-      독자와 연구자, 신학생들이 함께 유용한 도서를 공유하고 탐색할 수 있도록 돕습니다.
-    </p>
-  </header>
-
+  <header>📚 북맵 (BookMap)</header>
   <main>
+    <p>
+      북맵은 독서와 학문을 사랑하는 사람들을 위한 도서 공유 플랫폼입니다.<br>
+      원하는 책을 등록하고, 분야별/난이도별로 정리된 도서를 살펴보세요.<br>
+      새로운 배움과 만남을 이어주는 작은 길잡이가 되겠습니다.
+    </p>
     <div class="buttons">
-      <a href="form.html" class="register">➕ 도서 등록</a>
-      <a href="book.html" class="list">📖 도서 리스트</a>
-      <a href="admin.html" class="admin">⚙️ 관리자</a>
+      <a href="form.html">✍️ 도서 등록</a>
+      <a href="book.html">📖 도서 리스트</a>
     </div>
   </main>
-
-  <footer>
-    &copy; 2025 BookMap. All rights reserved.
-  </footer>
+  <footer>© 2025 BookMap — All rights reserved.</footer>
 </body>
 </html>
