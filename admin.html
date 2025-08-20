@@ -15,6 +15,19 @@
       font-size: 22px;
       margin-bottom: 20px;
     }
+    #toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+    }
     #book-list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -56,26 +69,37 @@
   </style>
 </head>
 <body>
-  <h1>📚 관리자 페이지 (승인/보류)</h1>
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <p>로딩 중입니다...</p>
+  <h1>📚 관리자 페이지 (승인/보류 관리)</h1>
+
+  <!-- 검색창 -->
+  <div id="toolbar">
+    <input type="text" id="searchInput" placeholder="제목, 저자, 출판사, 등록자 검색..." oninput="filterBooks()" />
+  </div>
+
+  <div id="loading">
+    <p>⏳ 로딩 중입니다...</p>
   </div>
   <div id="book-list"></div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
 
+    let allBooks = [];
+
     async function loadBooks() {
       const res = await fetch(`${API_URL}?type=admin`);
-      const books = await res.json();
-      renderBooks(books);
+      allBooks = await res.json();
+      renderBooks(allBooks);
       document.getElementById("loading").style.display = "none";
     }
 
     function renderBooks(books) {
       const list = document.getElementById("book-list");
       list.innerHTML = "";
+      if (books.length === 0) {
+        list.innerHTML = "<p>검색 결과가 없습니다.</p>";
+        return;
+      }
       books.forEach(book => {
         const card = document.createElement("div");
         card.className = "card";
@@ -95,6 +119,18 @@
         `;
         list.appendChild(card);
       });
+    }
+
+    // ✅ 검색 필터링
+    function filterBooks() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allBooks.filter(b =>
+        (b.title && b.title.toLowerCase().includes(keyword)) ||
+        (b.author && b.author.toLowerCase().includes(keyword)) ||
+        (b.publisher && b.publisher.toLowerCase().includes(keyword)) ||
+        (b.submitter && b.submitter.toLowerCase().includes(keyword))
+      );
+      renderBooks(filtered);
     }
 
     async function updateStatus(row, status) {
