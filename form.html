@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>도서 등록 - BookMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-2xl mx-auto p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">📚 도서 등록</h1>
+      <a href="index.html" class="text-blue-600 hover:underline">🏠 홈</a>
+    </div>
+
+    <!-- Form -->
+    <form id="bookForm" class="space-y-4 bg-white shadow p-6 rounded-xl">
+      <div>
+        <label class="block font-medium mb-1">도서명</label>
+        <input type="text" name="title" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">저자</label>
+        <input type="text" name="author" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">출판사</label>
+        <input type="text" name="publisher" class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">출판년도</label>
+        <input type="number" name="year" class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">표지 이미지 URL</label>
+        <input type="url" name="cover" placeholder="http://..." class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">구매 링크</label>
+        <input type="url" name="link" placeholder="http://..." class="w-full border rounded p-2 focus:ring focus:ring-blue-200" />
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-between items-center mt-6">
+        <a href="index.html" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">취소</a>
+        <button id="submitBtn" type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">등록</button>
+      </div>
+    </form>
+
+    <!-- Status message -->
+    <p id="statusMsg" class="mt-4 text-center text-gray-600"></p>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEMJ9D1bXqKdplunU81Xc0XGnDMW-7d1isBZG5lGvg7xOiV5WDWV3Nr6pEXHs3Uyw48Q/exec";
+    const form = document.getElementById("bookForm");
+    const statusMsg = document.getElementById("statusMsg");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // 버튼 비활성화 + 로딩 표시
+      submitBtn.disabled = true;
+      submitBtn.textContent = "등록 중...";
+      statusMsg.textContent = "";
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((v, k) => (data[k] = v));
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          statusMsg.textContent = "✅ 도서가 등록되었습니다!";
+          form.reset();
+        } else {
+          statusMsg.textContent = "⚠️ 오류가 발생했습니다. 다시 시도해주세요.";
+        }
+      } catch (err) {
+        statusMsg.textContent = "❌ 서버와 연결할 수 없습니다.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "등록";
+      }
+    });
+  </script>
+</body>
+</html>
