@@ -2,103 +2,126 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>📚 도서 등록</title>
-  <style>
-    body { font-family: sans-serif; background: #f0f4f8; color: #1f2937; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05); }
-    h1 { text-align: center; font-size: 28px; color: #1a73e8; margin-bottom: 30px; }
-    label { display: block; margin-top: 18px; font-weight: 600; font-size: 15px; color: #4b5563; }
-    input, textarea, select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-    input:focus, textarea:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26,115,232,0.2); }
-    textarea { resize: vertical; min-height: 100px; }
-    .btn-submit { margin-top: 30px; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; background: #1a73e8; color: #fff; transition: background 0.3s ease; }
-    .btn-submit:hover { background: #1562c2; }
-    .nav { text-align: center; margin-top: 25px; }
-    .nav a { margin: 0 12px; text-decoration: none; font-size: 15px; color: #1a73e8; font-weight: 500; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookMap — 도서 등록</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>📚 도서 등록</h1>
-    <form id="bookForm">
-      <label>제목</label>
-      <input type="text" name="title" required>
+<body class="bg-gray-50 text-gray-800">
+  <!-- 상단 네비게이션 -->
+  <header class="bg-blue-600 text-white shadow">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">📚 BookMap</h1>
+      <nav class="text-sm">
+        <a href="index.html" class="hover:underline">홈</a> ·
+        <a href="book.html" class="hover:underline">북맵 리스트</a>
+      </nav>
+    </div>
+  </header>
 
-      <label>저자</label>
-      <input type="text" name="author" required>
+  <!-- 메인 컨텐츠 -->
+  <main class="max-w-2xl mx-auto px-6 py-12">
+    <h2 class="text-2xl font-bold mb-6 text-center">도서 등록</h2>
+    
+    <form id="bookForm" class="bg-white p-8 rounded-2xl shadow space-y-6">
+      <!-- 제목 -->
+      <div>
+        <label class="block text-sm font-medium mb-2">제목</label>
+        <input type="text" name="title" required
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
+      
+      <!-- 저자 -->
+      <div>
+        <label class="block text-sm font-medium mb-2">저자</label>
+        <input type="text" name="author" required
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
+      
+      <!-- 출판사 -->
+      <div>
+        <label class="block text-sm font-medium mb-2">출판사</label>
+        <input type="text" name="publisher"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
 
-      <label>출판사</label>
-      <input type="text" name="publisher" required>
+      <!-- 카테고리 (다중선택 가능) -->
+      <div>
+        <label class="block text-sm font-medium mb-2">카테고리</label>
+        <input type="text" name="category" placeholder="예: 소설, 자기계발, 경제"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+        <p class="text-xs text-gray-500 mt-1">쉼표(,)로 구분해 여러 개 입력 가능</p>
+      </div>
 
-      <label>카테고리 (쉼표로 구분)</label>
-      <input type="text" name="category" placeholder="예: 소설, 문학, 고전">
+      <!-- 단계 -->
+      <div>
+        <label class="block text-sm font-medium mb-2">단계</label>
+        <select name="level" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+          <option value="입문">입문</option>
+          <option value="초급">초급</option>
+          <option value="중급">중급</option>
+          <option value="고급">고급</option>
+          <option value="전문">전문</option>
+        </select>
+      </div>
 
-      <label>난이도</label>
-      <select name="level">
-        <option value="입문">입문</option>
-        <option value="초급">초급</option>
-        <option value="중급">중급</option>
-        <option value="고급">고급</option>
-        <option value="전문">전문</option>
-      </select>
+      <!-- 링크 -->
+      <div>
+        <label class="block text-sm font-medium mb-2">알라딘 링크</label>
+        <input type="url" name="link_aladin"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
 
-      <label>이미지 URL</label>
-      <input type="url" name="cover" placeholder="https://example.com/book.jpg">
+      <div>
+        <label class="block text-sm font-medium mb-2">교보문고 링크</label>
+        <input type="url" name="link_kyobo"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
 
-      <label>설명</label>
-      <textarea name="description" placeholder="책 소개를 입력하세요"></textarea>
+      <div>
+        <label class="block text-sm font-medium mb-2">예스24 링크</label>
+        <input type="url" name="link_yes24"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"/>
+      </div>
 
-      <label>알라딘 링크</label>
-      <input type="url" name="aladin" placeholder="https://www.aladin.co.kr/...">
-
-      <label>교보 링크</label>
-      <input type="url" name="kyobo" placeholder="https://www.kyobobook.co.kr/...">
-
-      <label>예스24 링크</label>
-      <input type="url" name="yes24" placeholder="https://www.yes24.com/...">
-
-      <button type="submit" class="btn-submit">등록하기</button>
+      <!-- 등록 버튼 -->
+      <button type="submit"
+              class="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+        등록하기
+      </button>
     </form>
-  </div>
-  
-  <div class="nav">
-    <a href="index.html">🏠 홈</a>
-    <a href="book.html">📚 도서 목록</a>
-  </div>
+
+    <!-- 알림 메시지 -->
+    <div id="message" class="text-center mt-6 text-sm"></div>
+  </main>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
+    const form = document.getElementById("bookForm");
+    const message = document.getElementById("message");
 
-    document.getElementById("bookForm").addEventListener("submit", function(e) {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = new FormData(this);
+      message.textContent = "등록 중입니다...";
+
+      const formData = new FormData(form);
       const data = {};
-      formData.forEach((value, key) => data[key] = value);
+      formData.forEach((value, key) => (data[key] = value));
 
-      // Add a single "buy" property that combines all store links
-      data.buy = JSON.stringify({
-        aladin: data.aladin || "",
-        kyobo: data.kyobo || "",
-        yes24: data.yes24 || ""
-      });
-      delete data.aladin;
-      delete data.kyobo;
-      delete data.yes24;
-
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(result => {
-        alert("도서가 성공적으로 등록되었습니다!");
-        window.location.href = "book.html";
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        alert("등록 실패. 다시 시도해주세요.");
-      });
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwcJ2aaqVvEhxcGdJakKjsmizPBNXzScw2NVWsQ2VNammR0bncJpk68NOYcjgUW6wOf/exec", {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+        });
+        
+        if (response.ok) {
+          message.textContent = "✅ 도서가 성공적으로 등록되었습니다!";
+          form.reset();
+        } else {
+          message.textContent = "⚠️ 등록에 실패했습니다. 다시 시도해주세요.";
+        }
+      } catch (err) {
+        message.textContent = "❌ 오류가 발생했습니다: " + err.message;
+      }
     });
   </script>
 </body>
