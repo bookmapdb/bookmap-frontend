@@ -2,142 +2,101 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BookMap — 관리자 페이지</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>관리자 페이지 - BookMap</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 20px;
-      background: #fafafa;
-      color: #1f2937;
+    body { font-family: Arial, sans-serif; margin: 20px; background: #fafafa; color:#333; }
+    h1 { text-align: center; }
+    #searchBox { display: block; margin: 20px auto; padding: 8px; width: 60%; border:1px solid #ccc; border-radius: 6px; }
+    .book-card {
+      border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 12px auto;
+      background: white; max-width: 700px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 20px;
+    .actions button {
+      margin-right: 8px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;
     }
-    #toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
+    .approve { background: #4CAF50; color: white; }
+    .reject { background: #f44336; color: white; }
+    .edit { background: #2196F3; color: white; }
+    #loading {
+      text-align: center; margin: 40px auto; color: #555;
     }
-    #searchInput {
-      flex: 1;
-      padding: 8px;
-      font-size: 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
     }
-    #book-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-    .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .card img {
-      width: 100%;
-      height: 200px;
-      object-fit: contain;
-      border-radius: 8px;
-      background: #f9fafb;
-      margin-bottom: 12px;
-    }
-    .title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-    .author { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
-    .status { font-size: 14px; margin: 6px 0; }
-    .actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .btn {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .approve { background: #10b981; color: white; }
-    .reject { background: #ef4444; color: white; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>📚 관리자 페이지 (승인/보류 관리)</h1>
-
-  <!-- 검색창 -->
-  <div id="toolbar">
-    <input type="text" id="searchInput" placeholder="제목, 저자, 출판사, 등록자 검색..." oninput="filterBooks()" />
-  </div>
-
-  <div id="loading">
-    <p>⏳ 로딩 중입니다...</p>
-  </div>
-  <div id="book-list"></div>
-
+  <h1>📚 관리자 페이지</h1>
+  <input type="text" id="searchBox" placeholder="제목, 저자, 출판사, 등록자 검색..." />
+  <div id="loading"><div class="spinner"></div><p>로딩 중입니다...</p></div>
+  <div id="bookList"></div>
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
 
-    let allBooks = [];
-
     async function loadBooks() {
-      const res = await fetch(`${API_URL}?type=admin`);
-      allBooks = await res.json();
-      renderBooks(allBooks);
-      document.getElementById("loading").style.display = "none";
+      try {
+        const res = await fetch(`${API_URL}?action=admin`);
+        const data = await res.json();
+        document.getElementById("loading").classList.add("hidden");
+
+        if (data.error) {
+          document.body.innerHTML = `<h2 style='color:red;text-align:center'>${data.error}</h2>`;
+          return;
+        }
+        renderBooks(data);
+      } catch (err) {
+        document.body.innerHTML = "<h2 style='color:red;text-align:center'>관리자 권한이 필요합니다. (bookmapwep@gmail.com)</h2>";
+      }
     }
 
     function renderBooks(books) {
-      const list = document.getElementById("book-list");
+      const list = document.getElementById("bookList");
       list.innerHTML = "";
-      if (books.length === 0) {
-        list.innerHTML = "<p>검색 결과가 없습니다.</p>";
-        return;
+      const searchBox = document.getElementById("searchBox");
+
+      searchBox.addEventListener("input", () => {
+        const keyword = searchBox.value.toLowerCase();
+        const filtered = books.filter(b =>
+          (b.title || "").toLowerCase().includes(keyword) ||
+          (b.author || "").toLowerCase().includes(keyword) ||
+          (b.publisher || "").toLowerCase().includes(keyword) ||
+          (b.submitter || "").toLowerCase().includes(keyword)
+        );
+        render(filtered);
+      });
+
+      function render(data) {
+        list.innerHTML = "";
+        data.forEach((b, idx) => {
+          const card = document.createElement("div");
+          card.className = "book-card";
+          card.innerHTML = `
+            <h3>${b.title || ""}</h3>
+            <p><b>저자:</b> ${b.author || ""} | <b>출판사:</b> ${b.publisher || ""}</p>
+            <p><b>번역:</b> ${b.translator || ""} | <b>등록자:</b> ${b.submitter || ""}</p>
+            <p><b>상태:</b> ${b.status || ""}</p>
+            <div class="actions">
+              <button class="approve" onclick="updateStatus(${idx}, '승인')">승인</button>
+              <button class="reject" onclick="updateStatus(${idx}, '보류')">보류</button>
+              <button class="edit" onclick="alert('편집 기능은 추후 구현 예정')">편집</button>
+            </div>
+          `;
+          list.appendChild(card);
+        });
       }
-      books.forEach(book => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${book.cover || 'https://via.placeholder.com/200x280?text=No+Cover'}" alt="표지">
-          <div class="title">${book.title}</div>
-          <div class="author">${book.author}${book.translator ? ' / ' + book.translator : ''}</div>
-          <div>출판사: ${book.publisher || '-'}</div>
-          <div>카테고리: ${book.category || '-'}</div>
-          <div>레벨: ${book.level || '-'}</div>
-          <div>등록자: ${book.submitter || '-'} (${book.email || ''})</div>
-          <div class="status">상태: <b>${book.status}</b></div>
-          <div class="actions">
-            <button class="btn approve" onclick="updateStatus(${book._row}, '승인')">승인</button>
-            <button class="btn reject" onclick="updateStatus(${book._row}, '보류')">보류</button>
-          </div>
-        `;
-        list.appendChild(card);
-      });
+      render(books);
     }
 
-    // ✅ 검색 필터링
-    function filterBooks() {
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = allBooks.filter(b =>
-        (b.title && b.title.toLowerCase().includes(keyword)) ||
-        (b.author && b.author.toLowerCase().includes(keyword)) ||
-        (b.publisher && b.publisher.toLowerCase().includes(keyword)) ||
-        (b.submitter && b.submitter.toLowerCase().includes(keyword))
-      );
-      renderBooks(filtered);
-    }
-
-    async function updateStatus(row, status) {
-      await fetch(API_URL, {
-        method: "PUT",
-        body: JSON.stringify({ row, status })
-      });
+    async function updateStatus(rowIndex, status) {
+      await fetch(`${API_URL}?action=update&rowIndex=${rowIndex}&status=${status}`);
       alert("상태가 업데이트되었습니다.");
       loadBooks();
     }
