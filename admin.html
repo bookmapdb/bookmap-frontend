@@ -1,166 +1,115 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>관리자 - BookMap</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>북맵 — 관리자 페이지</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      margin: 20px;
-      background: #fafafa;
-      color: #1f2937;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th, td {
-      border-bottom: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-    }
-    th { background: #f3f4f6; }
-    button {
-      margin-right: 6px;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .approve { background: #16a34a; color: #fff; }
-    .reject { background: #dc2626; color: #fff; }
-    .delete { background: #6b7280; color: #fff; }
+    body { font-family: sans-serif; margin: 20px; background: #fafafa; color: #333; }
+    h1 { text-align: center; margin-bottom: 20px; }
 
-    /* 로딩 */
-    .loading {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(255,255,255,0.8);
-      z-index: 9999;
+    .book-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 20px; }
+    .card {
+      background: white; border-radius: 10px; padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column;
     }
-    .hidden { display: none; }
-    .spinner {
-      border: 4px solid #eee;
-      border-top: 4px solid #1a73e8;
-      border-radius: 50%;
-      width: 36px; height: 36px;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+    .card img { width: 100%; height: 180px; object-fit: contain; border-radius: 8px; background: #f0f0f0; }
+    .info { margin-top: 10px; flex-grow: 1; }
+    .title { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+    .meta { font-size: 13px; color: #555; margin-bottom: 8px; }
+
+    .btns { display: flex; gap: 6px; margin-top: auto; }
+    button {
+      flex: 1; padding: 8px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 13px;
     }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .approve { background: #28a745; color: white; }
+    .hold { background: #ffc107; color: black; }
+    .delete { background: #dc3545; color: white; }
+
+    .nav { margin-top: 20px; text-align: center; }
+    .nav a { margin: 0 10px; text-decoration: none; color: #1a73e8; font-weight: bold; }
+
+    .loading { text-align: center; margin: 20px 0; display: none; color: #555; }
   </style>
 </head>
 <body>
-  <h1>관리자 페이지</h1>
-  <table id="admin-table">
-    <thead>
-      <tr>
-        <th>제목</th>
-        <th>저자</th>
-        <th>출판사</th>
-        <th>상태</th>
-        <th>작업</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h1>🛠 관리자 페이지</h1>
 
-  <!-- 로딩 -->
-  <div id="loading" class="loading hidden">
-    <div class="spinner"></div>
-    <p>불러오는 중...</p>
+  <div id="loading" class="loading">📡 불러오는 중...</div>
+  <div id="bookList" class="book-list"></div>
+
+  <div class="nav">
+    <a href="index.html">🏠 홈</a>
+    <a href="book.html">📚 도서 리스트</a>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbygL5W_rVDTMkPIjLiSjDVN5nxRaZgHTIW3vbJgTgOL_Z_IwLF4k97VEd1bQNfxqAs1_A/exec";
 
-    function showLoading() {
-      document.getElementById('loading').classList.remove('hidden');
-    }
-    function hideLoading() {
-      document.getElementById('loading').classList.add('hidden');
-    }
+    const loading = document.getElementById("loading");
+    const bookList = document.getElementById("bookList");
 
-    async function loadBooks() {
-      showLoading();
+    async function fetchBooks() {
+      loading.style.display = "block";
       try {
-        const res = await fetch(API_URL + "?action=getBooks");
-        const data = await res.json();
-        const tbody = document.querySelector("#admin-table tbody");
-        tbody.innerHTML = "";
-
-        data.forEach(book => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${book.title}</td>
-            <td>${book.author || ''}</td>
-            <td>${book.publisher || ''}</td>
-            <td>${book.status || '대기'}</td>
-            <td>
-              <button class="approve">승인</button>
-              <button class="reject">반려</button>
-              <button class="delete">삭제</button>
-            </td>
-          `;
-
-          tr.querySelector(".approve").addEventListener("click", () => updateStatus(book.title, "승인"));
-          tr.querySelector(".reject").addEventListener("click", () => updateStatus(book.title, "반려"));
-          tr.querySelector(".delete").addEventListener("click", () => deleteBook(book.title));
-
-          tbody.appendChild(tr);
-        });
-      } catch (e) {
-        alert("데이터 불러오기 실패");
+        const res = await fetch(API_URL);
+        const books = await res.json();
+        renderBooks(books);
+      } catch (err) {
+        alert("❌ 도서 목록을 불러오는데 실패했습니다.");
       } finally {
-        hideLoading();
+        loading.style.display = "none";
       }
+    }
+
+    function renderBooks(books) {
+      bookList.innerHTML = "";
+      books.forEach(book => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${book.cover || 'https://via.placeholder.com/150x200?text=No+Cover'}" alt="${book.title}">
+          <div class="info">
+            <div class="title">${book.title}</div>
+            <div class="meta">${book.author || ''} | ${book.publisher || ''}</div>
+            <div class="meta">상태: <b>${book.status || '미정'}</b></div>
+          </div>
+          <div class="btns">
+            <button class="approve">승인</button>
+            <button class="hold">보류</button>
+            <button class="delete">삭제</button>
+          </div>
+        `;
+
+        // 버튼 이벤트 연결
+        card.querySelector(".approve").addEventListener("click", () => updateStatus(book.title, "승인"));
+        card.querySelector(".hold").addEventListener("click", () => updateStatus(book.title, "보류"));
+        card.querySelector(".delete").addEventListener("click", () => updateStatus(book.title, "삭제"));
+
+        bookList.appendChild(card);
+      });
     }
 
     async function updateStatus(title, status) {
-      showLoading();
+      if (!confirm(`"${title}" 도서를 ${status} 처리하시겠습니까?`)) return;
+
+      loading.style.display = "block";
       try {
-        const res = await fetch(API_URL, {
+        await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify({ action: "updateStatus", title, status }),
-          headers: { "Content-Type": "application/json" }
         });
-        await res.json();
-        loadBooks();
-      } catch(e) {
-        alert("상태 업데이트 실패");
+        alert(`✅ "${title}" 도서가 ${status} 처리되었습니다.`);
+        fetchBooks(); // 목록 갱신
+      } catch (err) {
+        alert("❌ 상태 변경 실패");
       } finally {
-        hideLoading();
+        loading.style.display = "none";
       }
     }
 
-    async function deleteBook(title) {
-      if (!confirm("정말 삭제하시겠습니까?")) return;
-      showLoading();
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "deleteBook", title }),
-          headers: { "Content-Type": "application/json" }
-        });
-        await res.json();
-        loadBooks();
-      } catch(e) {
-        alert("삭제 실패");
-      } finally {
-        hideLoading();
-      }
-    }
-
-    loadBooks();
+    fetchBooks();
   </script>
 </body>
 </html>
